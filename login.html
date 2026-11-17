@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign in or Join | AirMilesHK Marketplace</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,400&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/market.css">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+</head><body>
+<div id="hk-header"></div>
+<main>
+<section class="sec" style="padding-top:48px"><div class="W" style="max-width:560px">
+  <div class="form-card">
+    <div class="tabs" role="tablist" id="auth-tabs">
+      <button type="button" role="tab" data-mode="signin" aria-selected="true">Sign in</button>
+      <button type="button" role="tab" data-mode="signup" aria-selected="false">Join free</button>
+    </div>
+    <div id="msg"></div>
+
+    <!-- sign in -->
+    <form id="f-signin" data-mode="signin">
+      <h2>Welcome <em>back</em></h2>
+      <div class="f-field"><label class="f-label" for="si-email">Email</label><input class="f-input" id="si-email" type="email" autocomplete="email" required></div>
+      <div class="f-field"><label class="f-label" for="si-pw">Password</label><input class="f-input" id="si-pw" type="password" autocomplete="current-password" required></div>
+      <button class="btn dk block" type="submit">Sign in</button>
+      <p class="mt" style="font-size:.85rem;text-align:center"><a class="lnk" href="#" data-go="reset">Forgot your password?</a></p>
+      <div id="demo-users" class="note gold mt hide"><strong>Demo accounts:</strong> any password works.<div class="actions mt">
+        <button type="button" class="btn sm ol" data-demo="seller@demo.test">Seller</button>
+        <button type="button" class="btn sm ol" data-demo="buyer@demo.test">Buyer</button>
+        <button type="button" class="btn sm ol" data-demo="admin@demo.test">Admin</button></div></div>
+    </form>
+
+    <!-- sign up -->
+    <form id="f-signup" data-mode="signup" class="hide">
+      <h2>Join the <em>marketplace</em></h2>
+      <p style="font-size:.88rem">Free during launch. You need an account to list miles or make an offer.</p>
+      <div class="f-row">
+        <div class="f-field"><label class="f-label" for="su-name">Full name (as on your ID)</label><input class="f-input" id="su-name" autocomplete="name" required maxlength="120"></div>
+        <div class="f-field"><label class="f-label" for="su-dn">Public nickname</label><input class="f-input" id="su-dn" required maxlength="40" placeholder="e.g. SkyTrader"><div class="f-hint">Other members only see this name.</div></div>
+      </div>
+      <div class="f-row">
+        <div class="f-field"><label class="f-label" for="su-wa">WhatsApp number</label><input class="f-input" id="su-wa" type="tel" autocomplete="tel" maxlength="40" placeholder="+852 …" required><div class="f-hint">Only AirMilesHK sees this, to arrange your deals.</div></div>
+        <div class="f-field"><label class="f-label" for="su-country">Country</label><input class="f-input" id="su-country" autocomplete="country-name" maxlength="60"></div>
+      </div>
+      <div class="f-field"><label class="f-label" for="su-role">I want to</label>
+        <select class="f-select" id="su-role"><option value="both">Buy and sell</option><option value="buyer">Buy</option><option value="seller">Sell</option></select></div>
+      <div class="f-field"><label class="f-label" for="su-email">Email</label><input class="f-input" id="su-email" type="email" autocomplete="email" required></div>
+      <div class="f-field"><label class="f-label" for="su-pw">Password</label><input class="f-input" id="su-pw" type="password" autocomplete="new-password" minlength="8" required><div class="f-hint">At least 8 characters.</div></div>
+      <label class="f-check"><input type="checkbox" id="su-terms" required><span><span class="t">I accept the marketplace rules</span><span class="d" style="display:block">I have read the <a class="lnk" href="terms.html" target="_blank">marketplace rules</a>. I understand that most loyalty programmes prohibit selling or transferring miles, and I trade at my own risk.</span></span></label>
+      <button class="btn block mt" type="submit">Create my account →</button>
+    </form>
+
+    <!-- reset -->
+    <form id="f-reset" data-mode="reset" class="hide">
+      <h2>Reset your <em>password</em></h2>
+      <p style="font-size:.88rem">We will email you a link to choose a new password.</p>
+      <div class="f-field"><label class="f-label" for="rs-email">Email</label><input class="f-input" id="rs-email" type="email" autocomplete="email" required></div>
+      <button class="btn dk block" type="submit">Send reset link</button>
+      <p class="mt" style="font-size:.85rem;text-align:center"><a class="lnk" href="#" data-go="signin">Back to sign in</a></p>
+    </form>
+
+    <!-- new password (arrives from email link) -->
+    <form id="f-newpass" data-mode="newpass" class="hide">
+      <h2>Choose a new <em>password</em></h2>
+      <div class="f-field"><label class="f-label" for="np-pw">New password</label><input class="f-input" id="np-pw" type="password" autocomplete="new-password" minlength="8" required></div>
+      <button class="btn dk block" type="submit">Save password</button>
+    </form>
+  </div>
+</div></section>
+</main>
+<div id="hk-footer"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/js/config.js"></script><script src="assets/js/api.js"></script><script src="assets/js/app.js"></script>
+<script src="assets/js/page-login.js"></script>
+</body></html>

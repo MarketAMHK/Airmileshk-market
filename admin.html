@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin | AirMilesHK Marketplace</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,400&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/market.css">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+</head><body>
+<div id="hk-header"></div>
+<main>
+<section class="page-hero"><div class="W">
+  <div class="ey">Admin</div>
+  <h1>Marketplace <em>overview</em></h1>
+  <p class="hs">All members, listings and deals. Agreed deals need you to arrange payment and delivery.</p>
+</div></section>
+<section class="sec"><div class="W">
+  <div class="stats" id="stats"></div>
+  <div class="tabs" role="tablist" id="tabs">
+    <button role="tab" data-tab="deals" aria-selected="true">Deals <span class="count" id="c-deals"></span></button>
+    <button role="tab" data-tab="listings" aria-selected="false">Listings <span class="count" id="c-listings"></span></button>
+    <button role="tab" data-tab="members" aria-selected="false">Members <span class="count" id="c-members"></span></button>
+  </div>
+  <div class="actions mb"><input class="f-input" id="search" placeholder="Search name, email, programme…" style="max-width:340px">
+    <select class="f-select" id="status-filter" style="max-width:220px"></select>
+    <button class="btn ol sm" id="csv">Download CSV</button></div>
+  <div class="tbl-wrap"><table class="tbl" id="tbl"><thead></thead><tbody><tr><td class="loading">Loading…</td></tr></tbody></table></div>
+</div></section>
+</main>
+<div id="hk-footer"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/js/config.js"></script><script src="assets/js/api.js"></script><script src="assets/js/app.js"></script>
+<script src="assets/js/page-admin.js"></script>
+</body></html>

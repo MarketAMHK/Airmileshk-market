@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AirMilesHK Marketplace | Buy &amp; Sell Airline Miles and Hotel Points</title>
+<meta name="description" content="Members-only marketplace by AirMilesHK. Browse airline miles and hotel points listed by members, make offers, and trade with AirMilesHK holding payment until delivery.">
+<link rel="canonical" href="https://market.airmileshk.com/">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,400&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/market.css">
+<link rel="icon" type="image/png" href="assets/favicon.png"><link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta property="og:title" content="AirMilesHK Marketplace"><meta property="og:image" content="https://airmileshk.com/assets/og-image.jpg">
+</head><body>
+<div id="hk-header"></div>
+<main>
+<section class="page-hero" style="padding-bottom:80px"><div class="W">
+  <div class="ey">AirMilesHK Marketplace</div>
+  <h1>Miles &amp; points,<br><em>member to member.</em></h1>
+  <p class="hs">Members list the airline miles and hotel points they have. Buyers bid or ask for a ticket or stay. When you agree, AirMilesHK holds the payment until the seller delivers.</p>
+  <div class="actions mt"><a href="#listings" class="btn">Browse Listings →</a><a href="sell.html" class="btn-ghost">List your miles</a></div>
+</div></section>
+
+<section id="listings" style="padding-bottom:64px"><div class="W">
+  <form class="filters" id="filters" onsubmit="return false">
+    <div class="q"><label class="f-label" for="f-prog">Programme</label><select class="f-select" id="f-prog"><option value="">All programmes</option></select></div>
+    <div><label class="f-label" for="f-type">Type</label>
+      <select class="f-select" id="f-type"><option value="">All types</option><option value="airline">Airline miles</option><option value="hotel">Hotel points</option><option value="bank">Card points</option><option value="other">Other</option></select></div>
+    <div><label class="f-label" for="f-bal">Balance</label>
+      <select class="f-select" id="f-bal"><option value="0">Any balance</option><option value="50000">50K+</option><option value="100000">100K+</option><option value="250000">250K+</option><option value="500000">500K+</option><option value="1000000">1M+</option></select></div>
+    <div><label class="f-label" for="f-price">Price</label>
+      <select class="f-select" id="f-price"><option value="">Any</option><option value="fixed">Asking price</option><option value="offers">Open to offers</option></select></div>
+    <div><label class="f-label" for="f-sort">Sort</label>
+      <select class="f-select" id="f-sort"><option value="new">Newest</option><option value="bal">Largest balance</option><option value="price">Lowest ¢/mile</option></select></div>
+    <div class="opts">
+      <span class="f-label" style="margin:0 6px 0 0">Options</span>
+      <label class="pill-toggle"><input type="checkbox" id="o-whole"> Whole account</label>
+      <label class="pill-toggle"><input type="checkbox" id="o-partial"> Partial amounts</label>
+      <label class="pill-toggle"><input type="checkbox" id="o-book"> Issues tickets / books stays</label>
+      <button type="button" class="btn sm ol" id="f-clear" style="margin-left:auto">Clear</button>
+    </div>
+  </form>
+  <div class="results-bar"><h2 style="margin:0">Current <em>listings</em></h2><span class="n" id="count"></span></div>
+  <div id="results" class="grid cards"><div class="loading">Loading listings…</div></div>
+</div></section>
+
+<section id="how" class="sec" style="background:#fff;border-top:1px solid var(--border)"><div class="W">
+  <div class="ey">How it works</div>
+  <h2>Safe deals, with <em>AirMilesHK in the middle</em></h2>
+  <p style="max-width:680px">Every deal goes through us — the same way Binance P2P holds crypto in escrow. Buyers and sellers never send money to each other directly.</p>
+  <ol class="steps mt">
+    <li><strong>Buyer makes an offer</strong>A bid on miles/points, the whole account, or a request for a ticket or hotel stay.</li>
+    <li><strong>Seller responds</strong>Accept, counter with a new price, or decline. Counter as many times as you need.</li>
+    <li><strong>AirMilesHK holds payment</strong>Once agreed, we contact both sides. The buyer pays AirMilesHK, not the seller.</li>
+    <li><strong>Delivery, then release</strong>The seller delivers. Both sides confirm, and we release the funds to the seller.</li>
+  </ol>
+  <div class="note gold mt"><strong>Free during launch.</strong> Joining, listing and making offers cost nothing. Read the <a class="lnk" href="terms.html">marketplace rules</a> before you trade. Most loyalty programmes do not allow selling or transferring miles, and you trade at your own risk.</div>
+</div></section>
+</main>
+<div id="hk-footer"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/js/config.js"></script><script src="assets/js/api.js"></script><script src="assets/js/app.js"></script>
+<script src="assets/js/page-browse.js"></script>
+</body></html>

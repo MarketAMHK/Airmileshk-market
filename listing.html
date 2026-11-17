@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Listing | AirMilesHK Marketplace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,400&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/market.css">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+</head><body>
+<div id="hk-header"></div>
+<main>
+<section class="page-hero"><div class="W">
+  <div class="ey" id="l-type">Listing</div>
+  <h1 id="l-title">Loading…</h1>
+  <p class="hs" id="l-sub"></p>
+</div></section>
+<section class="sec"><div class="W">
+  <div id="msg"></div>
+  <div class="split hide" id="wrap">
+    <div>
+      <div class="card top">
+        <div class="l-head mb"><div><div class="f-label" style="margin:0">Available</div><div class="l-bal" id="l-bal"></div></div>
+          <div class="l-price"><div class="v" id="l-price"></div><div class="k" id="l-price-k"></div></div></div>
+        <div id="l-chips" class="mb"></div>
+        <dl class="kv" id="l-kv"></dl>
+      </div>
+      <div class="card" id="notes-card"><h3>Seller's notes</h3><p id="l-notes" style="white-space:pre-wrap;margin:0"></p></div>
+      <div class="card" id="owner-card" style="display:none">
+        <h3>This is your listing</h3>
+        <p style="font-size:.88rem">Offers on this listing appear in <a class="lnk" href="account.html#received">My Deals → Offers received</a>.</p>
+        <div class="actions" id="owner-actions"></div>
+      </div>
+    </div>
+
+    <aside class="sticky">
+      <div class="form-card" id="offer-box">
+        <h3 id="ob-title">Make an offer</h3>
+        <div id="ob-guest" class="hide">
+          <p style="font-size:.9rem">You need a free account to make an offer or request a booking.</p>
+          <a class="btn block" id="ob-join" href="login.html?mode=signup">Join free →</a>
+          <a class="btn ol block mt" id="ob-signin" href="login.html">I have an account</a>
+        </div>
+        <form id="of" class="hide" novalidate>
+          <div class="f-field" id="kind-field"><span class="f-label">What do you want?</span><div id="kinds"></div></div>
+          <div data-k="purchase whole_account">
+            <div class="f-field" data-k="purchase"><label class="f-label" for="qty">How many miles/points?</label><input class="f-input" id="qty" inputmode="numeric" placeholder="e.g. 100,000"><div class="f-hint" id="qty-hint"></div></div>
+            <div class="f-row">
+              <div class="f-field"><label class="f-label" for="ocpp">Your price (US¢ per mile)</label><input class="f-input" id="ocpp" inputmode="decimal" placeholder="e.g. 1.10"></div>
+              <div class="f-field"><label class="f-label" for="ototal">Total (US$)</label><input class="f-input" id="ototal" inputmode="decimal"></div>
+            </div>
+          </div>
+          <div data-k="booking">
+            <div class="f-field"><label class="f-label" for="bdet" id="bdet-l">What do you need booked?</label><textarea class="f-text" id="bdet" maxlength="2000"></textarea></div>
+            <div class="f-row">
+              <div class="f-field"><label class="f-label" for="bmiles">Miles/points needed (if known)</label><input class="f-input" id="bmiles" inputmode="numeric"></div>
+              <div class="f-field"><label class="f-label" for="btotal">Your budget (US$)</label><input class="f-input" id="btotal" inputmode="decimal"></div>
+            </div>
+          </div>
+          <div class="f-field"><label class="f-label" for="omsg">Message to seller (optional)</label><textarea class="f-text" id="omsg" maxlength="2000" style="min-height:70px"></textarea></div>
+          <div id="of-msg"></div>
+          <button class="btn block" type="submit" id="of-send">Send offer →</button>
+          <p class="f-hint" style="text-align:center;margin-top:10px">Nothing is paid now. If the seller accepts, AirMilesHK contacts you both to arrange payment.</p>
+        </form>
+      </div>
+    </aside>
+  </div>
+</div></section>
+</main>
+<div id="hk-footer"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/js/config.js"></script><script src="assets/js/api.js"></script><script src="assets/js/app.js"></script>
+<script src="assets/js/page-listing.js"></script>
+</body></html>

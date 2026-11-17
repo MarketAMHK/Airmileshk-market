@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Deals | AirMilesHK Marketplace</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,400&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/market.css">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+</head><body>
+<div id="hk-header"></div>
+<main>
+<section class="page-hero"><div class="W">
+  <div class="ey">My account</div>
+  <h1 id="hello">My <em>deals</em></h1>
+  <p class="hs">Offers you have received and sent, your listings, and your details.</p>
+</div></section>
+<section class="sec"><div class="W">
+  <div class="tabs" role="tablist" id="tabs">
+    <button role="tab" data-tab="received" aria-selected="true">Offers received <span class="count" id="c-received">0</span></button>
+    <button role="tab" data-tab="sent" aria-selected="false">Offers sent <span class="count" id="c-sent">0</span></button>
+    <button role="tab" data-tab="listings" aria-selected="false">My listings <span class="count" id="c-listings">0</span></button>
+    <button role="tab" data-tab="profile" aria-selected="false">My details</button>
+  </div>
+  <div data-pane="received"><div class="rows" id="received"><div class="loading">Loading…</div></div></div>
+  <div data-pane="sent" class="hide"><div class="rows" id="sent"></div></div>
+  <div data-pane="listings" class="hide">
+    <div class="actions mb"><a class="btn" href="sell.html">+ New listing</a></div>
+    <div class="rows" id="listings"></div>
+  </div>
+  <div data-pane="profile" class="hide">
+    <form id="pf" class="form-card" style="max-width:640px">
+      <div class="f-row">
+        <div class="f-field"><label class="f-label" for="p-name">Full name</label><input class="f-input" id="p-name" maxlength="120"></div>
+        <div class="f-field"><label class="f-label" for="p-dn">Public nickname</label><input class="f-input" id="p-dn" maxlength="40" required></div>
+      </div>
+      <div class="f-row">
+        <div class="f-field"><label class="f-label" for="p-wa">WhatsApp</label><input class="f-input" id="p-wa" maxlength="40"></div>
+        <div class="f-field"><label class="f-label" for="p-country">Country</label><input class="f-input" id="p-country" maxlength="60"></div>
+      </div>
+      <div class="f-field"><label class="f-label" for="p-role">I want to</label><select class="f-select" id="p-role"><option value="both">Buy and sell</option><option value="buyer">Buy</option><option value="seller">Sell</option></select></div>
+      <div class="f-field"><span class="f-label">Email</span><div id="p-email" class="muted"></div></div>
+      <div class="actions"><button class="btn dk" type="submit">Save details</button><a class="btn ol" href="login.html?mode=reset">Change password</a></div>
+    </form>
+  </div>
+</div></section>
+</main>
+<div id="hk-footer"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/js/config.js"></script><script src="assets/js/api.js"></script><script src="assets/js/app.js"></script>
+<script src="assets/js/page-account.js"></script>
+</body></html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>List Your Miles or Points | AirMilesHK Marketplace</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,400&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/market.css">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+</head><body>
+<div id="hk-header"></div>
+<main>
+<section class="page-hero"><div class="W">
+  <div class="ey">Sellers</div>
+  <h1 id="title">List your <em>miles or points</em></h1>
+  <p class="hs">Tell buyers what you have and how you are willing to sell. You can edit or remove the listing at any time.</p>
+</div></section>
+<section class="sec"><div class="W" style="max-width:760px">
+  <div id="msg"></div>
+  <form id="lf" class="form-card" novalidate>
+    <h3>1 · Programme &amp; balance</h3>
+    <div class="f-field"><label class="f-label" for="prog">Programme</label><select class="f-select" id="prog" required></select></div>
+    <div class="f-row hide" id="other-row">
+      <div class="f-field"><label class="f-label" for="prog-other">Programme name</label><input class="f-input" id="prog-other" maxlength="80"></div>
+      <div class="f-field"><label class="f-label" for="ptype">Type</label><select class="f-select" id="ptype"><option value="airline">Airline miles</option><option value="hotel">Hotel points</option><option value="bank">Card points</option><option value="other">Other</option></select></div>
+    </div>
+    <div class="f-row">
+      <div class="f-field"><label class="f-label" for="balance">Balance available</label><input class="f-input" id="balance" inputmode="numeric" placeholder="e.g. 250,000" required><div class="f-hint">You can type 250k or 1.2m.</div></div>
+      <div class="f-field"><label class="f-label" for="elite">Elite status (optional)</label><input class="f-input" id="elite" maxlength="80" placeholder="e.g. Platinum"></div>
+    </div>
+
+    <h3 class="mt">2 · How will you sell?</h3>
+    <p style="font-size:.85rem;margin-bottom:12px">Turn on every option you are happy with. Pick at least one.</p>
+    <label class="f-check" data-opt><input type="checkbox" id="o-partial"><span><span class="t">Sell part of my balance</span><span class="d" style="display:block">Buyers can buy a portion. Set a minimum per deal if you want.</span></span></label>
+    <div class="f-sub" id="min-wrap"><div class="f-field" style="max-width:280px"><label class="f-label" for="minq">Minimum per deal (optional)</label><input class="f-input" id="minq" inputmode="numeric" placeholder="e.g. 50,000"></div></div>
+    <label class="f-check" data-opt><input type="checkbox" id="o-whole"><span><span class="t">Sell the whole account</span><span class="d" style="display:block">Hand over the full account and balance. See the rules first — most programmes forbid this.</span></span></label>
+    <label class="f-check" data-opt><input type="checkbox" id="o-book"><span><span class="t" id="book-t">Issue tickets or book hotel stays for buyers</span><span class="d" style="display:block">You keep your account and book in the buyer's name with your miles/points.</span></span></label>
+
+    <h3 class="mt">3 · Price</h3>
+    <div class="seg mb" role="radiogroup">
+      <label><input type="radio" name="pm" value="offers" checked><span>Open to offers</span></label>
+      <label><input type="radio" name="pm" value="fixed"><span>Set an asking price</span></label>
+    </div>
+    <div id="price-wrap" class="f-row hide">
+      <div class="f-field"><label class="f-label" for="cpp">Price per mile/point (US cents)</label><input class="f-input" id="cpp" inputmode="decimal" placeholder="e.g. 1.25"><div class="f-hint" id="cpp-hint">1.25 = US$12.50 per 1,000</div></div>
+      <div class="f-field" id="whole-price-field"><label class="f-label" for="wprice">Whole-account price (US$)</label><input class="f-input" id="wprice" inputmode="decimal" placeholder="e.g. 3,000"></div>
+    </div>
+
+    <h3 class="mt">4 · Notes for buyers</h3>
+    <div class="f-field"><textarea class="f-text" id="notes" maxlength="2000" placeholder="Anything that helps: routes you can book, blackout dates, how fast you can deliver…"></textarea>
+      <div class="f-hint">Do not include phone numbers, emails or account numbers. AirMilesHK handles contact between members.</div></div>
+
+    <div class="note gold mb">By listing, you confirm you own this account and that it is in your name. We may ask for ID before a deal completes.</div>
+    <div class="actions"><button class="btn" type="submit" id="save">Publish listing →</button><a class="btn ol" href="account.html">Cancel</a></div>
+  </form>
+</div></section>
+</main>
+<div id="hk-footer"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/js/config.js"></script><script src="assets/js/api.js"></script><script src="assets/js/app.js"></script>
+<script src="assets/js/page-sell.js"></script>
+</body></html>

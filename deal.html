@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deal | AirMilesHK Marketplace</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,400&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/market.css">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+</head><body>
+<div id="hk-header"></div>
+<main>
+<section class="page-hero"><div class="W">
+  <div class="ey" id="d-ey">Deal</div>
+  <h1 id="d-title">Loading…</h1>
+  <p class="hs" id="d-sub"></p>
+</div></section>
+<section class="sec"><div class="W">
+  <div id="msg"></div>
+  <div class="split hide" id="wrap">
+    <div>
+      <div class="card top">
+        <div class="l-head mb"><h3 style="margin:0">Current terms</h3><div id="d-status"></div></div>
+        <dl class="kv" id="d-terms"></dl>
+        <div id="d-booking" class="hide mt"><div class="f-label">Booking request</div><div class="note" id="d-booking-text" style="white-space:pre-wrap"></div></div>
+      </div>
+      <div class="card"><h3>History</h3><ol class="timeline" id="d-timeline"></ol></div>
+    </div>
+    <aside class="sticky">
+      <div class="form-card" id="act-box"></div>
+      <div class="form-card mt hide" id="admin-box">
+        <h3>Admin</h3>
+        <p style="font-size:.85rem">Buyer: <strong id="a-buyer"></strong><br>Seller: <strong id="a-seller"></strong></p>
+        <div class="f-field"><label class="f-label" for="a-note">Note (shown to both members)</label><textarea class="f-text" id="a-note" style="min-height:70px"></textarea></div>
+        <div class="actions">
+          <button class="btn sm" data-admin="completed">Mark completed</button>
+          <button class="btn danger sm" data-admin="cancelled">Cancel deal</button>
+          <button class="btn ol sm" data-admin="accepted">Set back to agreed</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div></section>
+</main>
+<div id="hk-footer"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/js/config.js"></script><script src="assets/js/api.js"></script><script src="assets/js/app.js"></script>
+<script src="assets/js/page-deal.js"></script>
+</body></html>
