@@ -5,3 +5,5 @@ Disallow: /account.html
 Disallow: /deal.html
 Disallow: /login.html
 Disallow: /sell.html
+
+Sitemap: https://market.airmileshk.com/sitemap.xml

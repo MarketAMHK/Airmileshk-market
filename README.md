@@ -92,6 +92,23 @@ and in the mobile menu (`<div class="hk-mobile" …>`):
 
 ---
 
+## SEO (Google)
+
+- **Programme pages:** every programme has a public page at a clean address, such as
+  `market.airmileshk.com/emirates`, `/qatar`, `/marriott` or `/ihg`. Each has its own title, description and
+  heading, and shows that programme's live listings without login. The home page links to all of them.
+- **Listing pages:** public at `market.airmileshk.com/listing/<id>`. Making an offer needs an account.
+- **sitemap.xml and robots.txt:** the sitemap lists the home page, all programme pages and the rules page.
+  `robots.txt` points to it and keeps My Deals, admin, sign-in and the listing form out of Google
+  (these pages are also marked `noindex`).
+- **Adding or renaming a programme:** edit the list at the top of `tools/build-programmes.pl` (and
+  `assets/js/config.js`), then run `perl tools/build-programmes.pl`. That rebuilds the pages, the
+  home-page links and the sitemap.
+- **Google Search Console:** add `market.airmileshk.com` as a new property. To verify with an HTML file,
+  put Google's file (e.g. `google1234abcd.html`) in the top folder and upload it. Then submit
+  `https://market.airmileshk.com/sitemap.xml`.
+- Links from the main site (menu, sell-miles page, articles) are added in the main site's own build.
+
 ## How deals work (phase one)
 
 1. Buyer sends an offer (part of the balance / the whole account) or a ticket/stay request.

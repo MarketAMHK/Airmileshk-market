@@ -31,7 +31,7 @@
     if (o.kind !== 'booking' || o.quantity) terms.push([o.kind === 'booking' ? 'Est. ' + unit + ' needed' : 'Quantity', U.num(o.quantity) + ' ' + unit]);
     if (o.price_cpp) terms.push(['Price per ' + unit.replace(/s$/, ''), U.cpp(o.price_cpp)]);
     terms.push([o.kind === 'booking' ? 'Budget' : 'Total', U.usd(o.total_usd)]);
-    terms.push(['Listing', '<a class="lnk" href="listing.html?id=' + encodeURIComponent(o.listing_id) + '">' + U.esc(l.programme || 'View') + ' — ' + U.num(l.balance) + '</a>']);
+    terms.push(['Listing', '<a class="lnk" href="' + U.listingUrl(o.listing_id) + '">' + U.esc(l.programme || 'View') + ' — ' + U.num(l.balance) + '</a>']);
     U.$('#d-terms').innerHTML = terms.map(function (r) { return '<dt>' + U.esc(r[0]) + '</dt><dd>' + (r[0] === 'Listing' ? r[1] : U.esc(r[1])) + '</dd>'; }).join('');
     U.$('#d-booking').classList.toggle('hide', !o.booking_details);
     U.$('#d-booking-text').textContent = o.booking_details || '';
@@ -56,7 +56,7 @@
     } else if (o.status === 'completed') {
       box.innerHTML = '<h3>Completed</h3><p style="font-size:.9rem;margin:0">This deal is complete. Thank you for trading on the AirMilesHK Marketplace.</p>';
     } else if (o.status !== 'open') {
-      box.innerHTML = '<h3>Deal closed</h3><p style="font-size:.9rem">This deal was ' + U.esc(o.status) + '.</p>' + (role === 'buyer' ? '<a class="btn ol block" href="listing.html?id=' + encodeURIComponent(o.listing_id) + '">Back to the listing</a>' : '');
+      box.innerHTML = '<h3>Deal closed</h3><p style="font-size:.9rem">This deal was ' + U.esc(o.status) + '.</p>' + (role === 'buyer' ? '<a class="btn ol block" href="' + U.listingUrl(o.listing_id) + '">Back to the listing</a>' : '');
     } else if (myTurn) {
       var canQty = o.kind === 'purchase';
       box.innerHTML = '<h3>Your move</h3><p style="font-size:.88rem">' + (role === 'seller' ? 'The buyer is waiting for your answer.' : 'The seller sent a counter-offer.') + ' Accept, counter or decline.</p>' +

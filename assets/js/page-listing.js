@@ -1,6 +1,6 @@
 (async function () {
   var ctx = await App.start({ page: 'browse' });
-  var id = U.param('id'), msg = U.$('#msg'), l;
+  var id = U.param('id') || (location.pathname.match(/\/listing\/([\w-]+)/) || [])[1], msg = U.$('#msg'), l;
   try { l = id ? await API.getListing(id) : null; } catch (e) { l = null; }
   if (!l) {
     U.$('#l-title').textContent = 'Listing not found';
@@ -10,7 +10,16 @@
   var unit = l.programme_type === 'hotel' ? 'points' : 'miles';
   var mine = ctx.user && ctx.user.id === l.seller_id;
   document.title = l.programme + ' — ' + U.short(l.balance) + ' ' + unit + ' | AirMilesHK Marketplace';
-  U.$('#l-type').textContent = U.typeLabel[l.programme_type] || 'Listing';
+  // SEO: description, canonical clean URL, keep inactive listings out of Google.
+  var desc = U.num(l.balance) + ' ' + l.programme + ' ' + unit + ' listed by a member on the AirMilesHK Marketplace. ' +
+    (l.price_mode !== 'fixed' ? 'Open to offers. ' : l.price_cpp ? 'Asking ' + U.cpp(l.price_cpp) + ' per ' + unit.replace(/s$/, '') + '. ' : 'Asking ' + U.usd(l.whole_price_usd) + ' for the whole account. ') +
+    'Make an offer safely, with AirMilesHK holding payment until delivery.';
+  function meta(attr, key, val) { var m = document.querySelector('meta[' + attr + '="' + key + '"]'); if (!m) { m = document.createElement('meta'); m.setAttribute(attr, key); document.head.appendChild(m); } m.setAttribute('content', val); }
+  meta('name', 'description', desc); meta('property', 'og:title', document.title); meta('property', 'og:description', desc);
+  var can = document.querySelector('link[rel=canonical]'); if (can) can.href = 'https://market.airmileshk.com' + U.listingUrl(l.id);
+  if (l.status !== 'active') meta('name', 'robots', 'noindex');
+  var purl = U.programmeUrl(l.programme);
+  U.$('#l-type').innerHTML = purl ? '<a href="' + purl + '" style="color:inherit;text-decoration:none">' + U.esc(l.programme) + ' listings</a>' : U.esc(U.typeLabel[l.programme_type] || 'Listing');
   U.$('#l-title').innerHTML = U.esc(l.programme);
   U.$('#l-sub').textContent = 'Listed by ' + (l.seller ? l.seller.display_name : 'a member') + ' · ' + U.ago(l.created_at) + (l.status !== 'active' ? ' · ' + l.status.toUpperCase() : '');
   U.$('#l-bal').innerHTML = U.num(l.balance) + '<small>' + unit + '</small>';
@@ -20,7 +29,7 @@
     ['Sells part of balance', l.sell_partial ? 'Yes' + (l.min_per_deal ? ' — min ' + U.num(l.min_per_deal) + ' per deal' : '') : 'No'],
     ['Sells whole account', l.sell_whole ? 'Yes' + (l.whole_price_usd ? ' — ' + U.usd(l.whole_price_usd) : '') : 'No'],
     [l.programme_type === 'hotel' ? 'Books stays for you' : 'Issues tickets for you', l.offers_booking ? 'Yes' : 'No'],
-    ['Asking price', l.price_mode === 'fixed' && l.price_cpp ? U.cpp(l.price_cpp) + ' per ' + unit.replace(/s$/, '') + ' (' + U.usd(l.price_cpp * 10) + ' / 1,000)' : 'Open to offers']
+    ['Asking price', l.price_mode !== 'fixed' ? 'Open to offers' : l.price_cpp ? U.cpp(l.price_cpp) + ' per ' + unit.replace(/s$/, '') + ' (' + U.usd(l.price_cpp * 10) + ' / 1,000)' : U.usd(l.whole_price_usd) + ' for the whole account']
   ];
   if (l.elite_status) kv.push(['Elite status', l.elite_status]);
   if (l.seller) kv.push(['Member since', U.date(l.seller.created_at)]);
@@ -41,7 +50,7 @@
       b.onclick = async function () {
         var st = b.dataset.st;
         if (st === 'removed' && !confirm('Remove this listing? Buyers will no longer see it.')) return;
-        try { await API.setListingStatus(l.id, st); location.href = st === 'removed' ? 'account.html' : location.pathname + '?id=' + encodeURIComponent(l.id); }
+        try { await API.setListingStatus(l.id, st); location.href = st === 'removed' ? '/account.html' : U.listingUrl(l.id); }
         catch (e) { U.toast(e.message, true); }
       };
     });
@@ -50,7 +59,7 @@
 
   /* ── buyer view ── */
   if (!ctx.user) {
-    var nxt = encodeURIComponent('listing.html?id=' + l.id);
+    var nxt = encodeURIComponent('listing/' + l.id);
     U.$('#ob-join').href = 'login.html?mode=signup&next=' + nxt; U.$('#ob-signin').href = 'login.html?next=' + nxt;
     U.$('#ob-guest').classList.remove('hide');
     return;

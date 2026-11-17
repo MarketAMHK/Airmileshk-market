@@ -4,16 +4,7 @@
   var el = { prog: U.$('#f-prog'), type: U.$('#f-type'), bal: U.$('#f-bal'), price: U.$('#f-price'), sort: U.$('#f-sort'),
              whole: U.$('#o-whole'), partial: U.$('#o-partial'), book: U.$('#o-book'), res: U.$('#results'), count: U.$('#count') };
 
-  function card(l) {
-    var p = U.priceLine(l), mine = ctx.user && ctx.user.id === l.seller_id;
-    return '<a class="l-card" href="listing.html?id=' + encodeURIComponent(l.id) + '">' +
-      '<div class="l-head"><div><div class="l-prog">' + U.esc(l.programme) + '</div><div class="l-type">' + U.esc(U.typeLabel[l.programme_type] || '') + '</div></div>' +
-      '<div class="l-price"><div class="v">' + U.esc(p.v) + '</div><div class="k">' + U.esc(p.k) + '</div></div></div>' +
-      '<div class="l-bal">' + U.num(l.balance) + '<small>' + (l.programme_type === 'hotel' ? 'points' : 'miles') + '</small></div>' +
-      U.optionChips(l) +
-      '<div class="l-foot"><span>' + (l.seller ? 'by ' + U.esc(l.seller.display_name) : '') + (mine ? ' · <strong>your listing</strong>' : '') + '</span><span>' + U.ago(l.created_at) + '</span></div>' +
-    '</a>';
-  }
+  function card(l) { return U.listingCard(l, ctx.user); }
 
   function render() {
     var f = { prog: el.prog.value, type: el.type.value, bal: +el.bal.value, price: el.price.value };

@@ -58,6 +58,20 @@
       }
       return { v: 'Open to offers', k: 'make a bid' };
     },
+    // Clean public URL for a listing (Netlify rewrites /listing/<id> to listing.html).
+    listingUrl: function (id) { return '/listing/' + encodeURIComponent(id); },
+    // Public programme page (e.g. /emirates) if one exists for this programme name.
+    programmeUrl: function (name) { var s = (window.PROGRAMME_PAGES || {})[name]; return s ? '/' + s : null; },
+    listingCard: function (l, user) {
+      var p = U.priceLine(l), mine = user && user.id === l.seller_id;
+      return '<a class="l-card" href="' + U.listingUrl(l.id) + '">' +
+        '<div class="l-head"><div><div class="l-prog">' + U.esc(l.programme) + '</div><div class="l-type">' + U.esc(U.typeLabel[l.programme_type] || '') + '</div></div>' +
+        '<div class="l-price"><div class="v">' + U.esc(p.v) + '</div><div class="k">' + U.esc(p.k) + '</div></div></div>' +
+        '<div class="l-bal">' + U.num(l.balance) + '<small>' + (l.programme_type === 'hotel' ? 'points' : 'miles') + '</small></div>' +
+        U.optionChips(l) +
+        '<div class="l-foot"><span>' + (l.seller ? 'by ' + U.esc(l.seller.display_name) : '') + (mine ? ' · <strong>your listing</strong>' : '') + '</span><span>' + U.ago(l.created_at) + '</span></div>' +
+      '</a>';
+    },
     programmeOptions: function (selected) {
       var P = CFG.PROGRAMMES || {}, html = '<option value="">Choose a programme…</option>';
       [['airline', 'Airlines'], ['hotel', 'Hotels'], ['bank', 'Credit card points']].forEach(function (g) {
@@ -89,38 +103,38 @@
     return '' +
       '<header class="hk-header">' +
       '<div class="hk-nav-inner">' +
-        '<a href="index.html" class="hk-logo" aria-label="AirMilesHK Marketplace — Home">' +
-          '<img src="assets/logo.png" alt="AirMilesHK" width="132" height="50">' +
+        '<a href="/" class="hk-logo" aria-label="AirMilesHK Marketplace — Home">' +
+          '<img src="/assets/logo.png" alt="AirMilesHK" width="132" height="50">' +
           '<span class="mk-market-tag">Marketplace</span>' +
         '</a>' +
         '<nav aria-label="Main navigation"><ul class="hk-nav-links">' +
-          '<li><a href="index.html"' + cur('browse') + '>Browse</a></li>' +
-          '<li><a href="sell.html"' + cur('sell') + '>List Your Miles</a></li>' +
-          '<li><a href="account.html"' + cur('account') + '>My Deals</a></li>' +
-          '<li><a href="index.html#how">How It Works</a></li>' +
+          '<li><a href="/"' + cur('browse') + '>Browse</a></li>' +
+          '<li><a href="/sell.html"' + cur('sell') + '>List Your Miles</a></li>' +
+          '<li><a href="/account.html"' + cur('account') + '>My Deals</a></li>' +
+          '<li><a href="/#how">How It Works</a></li>' +
           '<li class="hk-dd"><a href="' + M + '/">AirMilesHK.com <span class="hk-caret">▾</span></a><div class="hk-dd-menu">' +
             mainLinks.map(function (l) { return '<a href="' + l[0] + '">' + l[1] + '</a>'; }).join('') +
           '</div></li>' +
-          '<li class="nav-admin hide"><a href="admin.html"' + cur('admin') + '>Admin</a></li>' +
+          '<li class="nav-admin hide"><a href="/admin.html"' + cur('admin') + '>Admin</a></li>' +
         '</ul></nav>' +
         '<div class="hk-nav-user">' +
-          '<span class="nav-out"><a href="login.html" class="hk-nav-signin" style="font-size:.85rem;font-weight:500;color:#4A5E78;text-decoration:none;padding:8px 10px">Sign in</a></span>' +
+          '<span class="nav-out"><a href="/login.html" class="hk-nav-signin" style="font-size:.85rem;font-weight:500;color:#4A5E78;text-decoration:none;padding:8px 10px">Sign in</a></span>' +
           '<span class="nav-in hide"><span class="who"></span> <button type="button" class="btn sm ol nav-signout">Sign out</button></span>' +
-          '<a href="login.html?mode=signup" class="hk-cta nav-cta">Join Free →</a>' +
+          '<a href="/login.html?mode=signup" class="hk-cta nav-cta">Join Free →</a>' +
         '</div>' +
         '<button class="hk-burger" aria-label="Open menu" aria-expanded="false" aria-controls="hk-mobile-menu"><span></span><span></span><span></span></button>' +
       '</div>' +
       '<div class="hk-mobile" id="hk-mobile-menu">' +
-        '<a href="index.html">Browse listings</a>' +
-        '<a href="sell.html">List your miles</a>' +
-        '<a href="account.html">My deals &amp; account</a>' +
-        '<a href="index.html#how">How it works</a>' +
-        '<a href="admin.html" class="nav-admin hide">Admin</a>' +
+        '<a href="/">Browse listings</a>' +
+        '<a href="/sell.html">List your miles</a>' +
+        '<a href="/account.html">My deals &amp; account</a>' +
+        '<a href="/#how">How it works</a>' +
+        '<a href="/admin.html" class="nav-admin hide">Admin</a>' +
         '<button class="hk-m-acc" type="button" aria-expanded="false">AirMilesHK.com <span class="hk-m-car">▾</span></button>' +
         '<div class="hk-m-sub">' + mainLinks.map(function (l, i) { return '<a href="' + l[0] + '"' + (i === mainLinks.length - 1 ? ' class="hk-m-all"' : '') + '>' + l[1] + '</a>'; }).join('') + '</div>' +
-        '<a href="login.html" class="nav-out">Sign in</a>' +
+        '<a href="/login.html" class="nav-out">Sign in</a>' +
         '<a href="#" class="nav-in nav-signout hide">Sign out</a>' +
-        '<a href="login.html?mode=signup" class="hk-m-cta nav-cta">Join Free →</a>' +
+        '<a href="/login.html?mode=signup" class="hk-m-cta nav-cta">Join Free →</a>' +
       '</div>' +
       '</header><div class="hk-header-ph"></div>';
   }
@@ -128,12 +142,12 @@
   function footer() {
     return '' +
       '<footer class="hk-footer"><div class="hk-foot-inner"><div class="hk-foot-top">' +
-        '<div class="hk-foot-brand"><img src="assets/logo-white.png" alt="AirMilesHK logo" width="800" height="304" loading="lazy">' +
+        '<div class="hk-foot-brand"><img src="/assets/logo-white.png" alt="AirMilesHK logo" width="800" height="304" loading="lazy">' +
           '<p>The AirMilesHK members marketplace — miles and hotel points, bought and sold with AirMilesHK in the middle. Independent miles broker since 2010, registered in Hong Kong and the United States.</p></div>' +
         '<div><h4>Marketplace</h4><ul>' +
-          '<li><a href="index.html">Browse listings</a></li><li><a href="sell.html">List your miles</a></li>' +
-          '<li><a href="account.html">My deals</a></li><li><a href="index.html#how">How it works</a></li>' +
-          '<li><a href="terms.html">Marketplace rules</a></li></ul></div>' +
+          '<li><a href="/">Browse listings</a></li><li><a href="/sell.html">List your miles</a></li>' +
+          '<li><a href="/account.html">My deals</a></li><li><a href="/#how">How it works</a></li>' +
+          '<li><a href="/terms.html">Marketplace rules</a></li></ul></div>' +
         '<div><h4>Airlines</h4><ul>' +
           '<li><a href="' + M + '/cathay-pacific-asia-miles">Cathay Pacific Asia Miles</a></li>' +
           '<li><a href="' + M + '/emirates-skywards-miles">Emirates Skywards</a></li>' +
@@ -153,7 +167,7 @@
           '<li><a href="https://www.trustpilot.com/review/airmiles.hk" target="_blank" rel="noopener">Trustpilot Reviews ↗</a></li></ul></div>' +
       '</div><div class="hk-foot-bottom">' +
         '<span class="hk-foot-copy">© ' + new Date().getFullYear() + ' AirMilesHK.com · All rights reserved · Hong Kong &amp; United States</span>' +
-        '<p class="hk-foot-disc">Disclaimer: AirMilesHK.com and its operating companies are an independent service with no affiliation to any airline, hotel group or loyalty programme. Buying, selling or transferring miles, points or accounts may breach the terms and conditions of the programme concerned and can lead to forfeiture of the balance or closure of the account. Members list and trade at their own discretion and risk, and must read the <a href="terms.html" style="color:#8A9BB5">marketplace rules</a> before making or accepting an offer.</p>' +
+        '<p class="hk-foot-disc">Disclaimer: AirMilesHK.com and its operating companies are an independent service with no affiliation to any airline, hotel group or loyalty programme. Buying, selling or transferring miles, points or accounts may breach the terms and conditions of the programme concerned and can lead to forfeiture of the balance or closure of the account. Members list and trade at their own discretion and risk, and must read the <a href="/terms.html" style="color:#8A9BB5">marketplace rules</a> before making or accepting an offer.</p>' +
       '</div></div></footer>';
   }
 
@@ -175,7 +189,7 @@
       });
     });
     U.$$('.nav-signout').forEach(function (el) {
-      el.addEventListener('click', async function (e) { e.preventDefault(); await API.signOut(); location.href = 'index.html'; });
+      el.addEventListener('click', async function (e) { e.preventDefault(); await API.signOut(); location.href = '/'; });
     });
   }
 
@@ -185,7 +199,7 @@
     U.$$('.nav-admin').forEach(function (el) { el.classList.toggle('hide', !(profile && profile.is_admin)); });
     U.$$('.nav-cta').forEach(function (el) {
       el.textContent = user ? 'List Your Miles →' : 'Join Free →';
-      el.href = user ? 'sell.html' : 'login.html?mode=signup';
+      el.href = user ? '/sell.html' : '/login.html?mode=signup';
     });
     var who = U.$('.hk-nav-user .who'); if (who) who.textContent = profile ? profile.display_name : '';
   }
@@ -205,7 +219,7 @@
       var bar = document.createElement('div'); bar.className = 'demo-bar';
       bar.innerHTML = 'DEMO MODE · data stays in this browser only · <a href="#" id="demo-reset">Reset</a>';
       document.body.appendChild(bar); document.body.style.paddingBottom = '34px';
-      document.getElementById('demo-reset').onclick = function (e) { e.preventDefault(); API.resetDemo(); location.href = 'index.html'; };
+      document.getElementById('demo-reset').onclick = function (e) { e.preventDefault(); API.resetDemo(); location.href = '/'; };
       U.$('.hk-wa-float').style.bottom = '52px';
     }
     wireChrome();
@@ -216,12 +230,12 @@
     setUser(user, profile);
 
     if ((opts.auth === 'required' || opts.auth === 'admin') && !user) {
-      location.replace('login.html?next=' + encodeURIComponent(location.pathname.split('/').pop() + location.search));
+      location.replace('/login.html?next=' + encodeURIComponent(location.pathname.replace(/^\//, '') + location.search));
       return new Promise(function () {});
     }
     if (opts.auth === 'admin' && !(profile && profile.is_admin)) {
       var main = document.querySelector('main');
-      if (main) main.innerHTML = '<section class="sec"><div class="W"><div class="empty"><h3>Admins only</h3><p>This page is only for the AirMilesHK team.</p><a class="btn" href="index.html">Back to marketplace</a></div></div></section>';
+      if (main) main.innerHTML = '<section class="sec"><div class="W"><div class="empty"><h3>Admins only</h3><p>This page is only for the AirMilesHK team.</p><a class="btn" href="/">Back to marketplace</a></div></div></section>';
       return new Promise(function () {});
     }
     if (profile && profile.is_suspended) {

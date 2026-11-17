@@ -1,6 +1,7 @@
 (async function () {
   var next = U.param('next') || 'account.html';
-  if (!/^[\w\-]+\.html(\?[\w=&%\-.]*)?$/.test(next)) next = 'account.html';   // only allow local pages
+  if (!/^(listing\/[\w\-]+|[\w\-]+(\.html)?)(\?[\w=&%\-.]*)?$/.test(next)) next = 'account.html';   // only allow local pages
+  next = '/' + next;
   var msg = U.$('#msg');
   function say(text, kind) { msg.innerHTML = text ? '<div class="note ' + (kind || 'red') + ' mb">' + text + '</div>' : ''; }
   function mode(m) {

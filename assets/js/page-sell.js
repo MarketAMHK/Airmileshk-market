@@ -64,7 +64,7 @@
     var btn = U.$('#save'); U.btnBusy(btn, true, 'Saving…');
     try {
       var saved = await API.saveListing(data, id);
-      location.href = 'listing.html?id=' + encodeURIComponent(saved.id) + '&saved=1';
+      location.href = U.listingUrl(saved.id) + '?saved=1';
     } catch (err) { say(U.esc(err.message)); U.btnBusy(btn, false); }
   };
 })();

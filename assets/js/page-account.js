@@ -37,7 +37,7 @@
       empty('You have not made any offers', 'Browse listings and send a bid or a booking request.', '<a class="btn" href="index.html">Browse listings</a>');
     U.$('#listings').innerHTML = listings.length ? listings.map(function (l) {
       var p = U.priceLine(l);
-      return '<a class="row" href="listing.html?id=' + encodeURIComponent(l.id) + '"><div class="main"><div class="t">' + U.esc(l.programme) + ' — ' + U.num(l.balance) + '</div>' +
+      return '<a class="row" href="' + U.listingUrl(l.id) + '"><div class="main"><div class="t">' + U.esc(l.programme) + ' — ' + U.num(l.balance) + '</div>' +
         '<div class="s">' + U.esc(p.v) + ' · listed ' + U.date(l.created_at) + '</div></div><div class="r">' + U.statusChip(l.status) + '</div></a>';
     }).join('') : empty('No listings yet', 'List your miles or points. It takes about two minutes.', '');
     if (!location.hash && !rec.length && sent.length) tab('sent');

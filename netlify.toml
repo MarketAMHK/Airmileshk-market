@@ -37,3 +37,15 @@
   to = "/404.html"
   status = 404
   force = true
+
+[[redirects]]
+  from = "/tools/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+# Clean public listing URLs: /listing/<id> is served by listing.html
+[[redirects]]
+  from = "/listing/*"
+  to = "/listing.html"
+  status = 200

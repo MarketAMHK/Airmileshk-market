@@ -54,7 +54,7 @@
       head = ['Listed', 'Programme', 'Balance', 'Options', 'Price', 'Seller', 'Status', ''];
       body = rows.map(function (l) {
         var opts = [l.sell_partial ? 'Partial' + (l.min_per_deal ? ' (min ' + U.short(l.min_per_deal) + ')' : '') : '', l.sell_whole ? 'Whole' : '', l.offers_booking ? 'Books' : ''].filter(Boolean).join(', ');
-        return '<tr><td>' + U.date(l.created_at) + '</td><td><a href="listing.html?id=' + encodeURIComponent(l.id) + '"><strong>' + U.esc(l.programme) + '</strong></a></td><td>' + U.num(l.balance) + '</td>' +
+        return '<tr><td>' + U.date(l.created_at) + '</td><td><a href="' + U.listingUrl(l.id) + '"><strong>' + U.esc(l.programme) + '</strong></a></td><td>' + U.num(l.balance) + '</td>' +
           '<td>' + U.esc(opts) + '</td><td>' + U.esc(U.priceLine(l).v) + '</td><td>' + U.esc(name(l.seller_id)) + '</td><td>' + U.statusChip(l.status) + '</td>' +
           '<td>' + (l.status === 'removed' ? '<button class="btn ol sm" data-l="' + l.id + '" data-st="active">Restore</button>' : '<button class="btn danger sm" data-l="' + l.id + '" data-st="removed">Remove</button>') + '</td></tr>';
       });
