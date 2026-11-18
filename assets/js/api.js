@@ -122,6 +122,10 @@
         return { profiles: chk(res[0]), listings: chk(res[1]), offers: chk(res[2]), quotes: chk(res[3]), events: chk(res[4]), waLog: chk(res[5]) };
       },
       async adminSetQuoteStatus(id, status) { chk(await sb.rpc('admin_set_quote_status', { p_quote: id, p_status: status })); },
+      async adminCreateListing(p) { return chk(await sb.rpc('admin_create_listing', { p: p })); },
+      async adminUpdateQuoteContact(id, name, phone) { chk(await sb.rpc('admin_update_quote_contact', { p_quote: id, p_name: name, p_phone: phone })); },
+      async adminSetQuoteEmail(id, email) { chk(await sb.rpc('admin_set_quote_email', { p_quote: id, p_email: email })); },
+      async adminConvertHouseListing(id) { chk(await sb.rpc('admin_convert_house_listing', { p_quote: id })); },
       async adminMarkWa(eventId, recipient) {
         var r = await sb.from('admin_wa_log').insert({ event_id: eventId, recipient: recipient });
         if (r.error && !/duplicate/i.test(r.error.message)) throw new Error(r.error.message);
@@ -319,21 +323,27 @@
       },
       async submitSellQuote(p) {
         var db = load(), digits = String(p.phone || '').replace(/\D/g, ''), email = String(p.email || '').trim().toLowerCase();
+        var src = p.source === 'mainsite' ? 'mainsite' : 'form';
         if (p.website) fail('Something went wrong. Please try again.');
-        if (digits.length < 7) fail('Enter your phone number with country code.');
+        if (digits.length < 7) { if (src === 'form') fail('Enter your phone number with country code.'); p.phone = ''; }
         if (!p.programme) fail('Choose your programme.');
+        p.balance = Number(String(p.balance || '').replace(/\D/g, '')) || 0;
         if (!(p.balance > 0)) fail('Enter your balance.');
-        if (p.wants_listing) validateListing(p);
-        var q = Object.assign({}, p, { id: uuid(), created_at: now(), email: email, listing_id: null, member_id: null, attach: 'none', status: 'new' }); delete q.website;
+        var wants = !!p.wants_listing;
+        if (!p.sell_whole && !p.sell_partial && !p.offers_booking) p.sell_partial = true;
+        if (p.price_mode === 'fixed' && !p.price_cpp && !p.whole_price_usd) p.price_mode = 'offers';
+        var q = Object.assign({}, p, { id: uuid(), created_at: now(), source: src, email: email, listing_id: null, member_id: null, attach: 'none', status: 'new' }); delete q.website;
         db.quotes.push(q);
         var res = { quote_id: q.id, listing_id: null, attach: 'none', listing_status: null };
-        if (p.wants_listing) {
-          var m = email && db.profiles.find(function (x) { return x.email === email; }), seller, status = 'active', attach;
+        {
+          // Mirrors submit_sell_quote (005): ticked + account = member listing; otherwise a house listing.
+          var m = wants && email && db.profiles.find(function (x) { return x.email === email; }), seller, status = 'active', attach;
           if (m) { seller = m.id; attach = (Date.now() - new Date(m.created_at)) < 15 * 6e4 ? 'new_member' : 'existing_member'; if (attach === 'existing_member') status = 'paused'; }
           else { attach = 'managed'; seller = (db.profiles.find(function (x) { return x.is_admin; }) || {}).id; if (!seller) fail('The marketplace is not ready yet.'); }
           var l = { id: uuid(), seller_id: seller, programme: p.programme, programme_type: p.programme_type || 'other', balance: p.balance, sell_whole: !!p.sell_whole, sell_partial: !!p.sell_partial, min_per_deal: p.sell_partial ? p.min_per_deal || null : null, offers_booking: !!p.offers_booking, price_mode: p.price_mode || 'offers', price_cpp: p.price_mode === 'fixed' ? p.price_cpp : null, whole_price_usd: p.price_mode === 'fixed' ? p.whole_price_usd : null, elite_status: '', notes: '', status: status, managed: attach === 'managed', quote_id: q.id, created_at: now(), updated_at: now() };
+          if (!m) Object.assign(l, { sell_whole: false, sell_partial: true, min_per_deal: null, offers_booking: false, price_mode: 'offers', price_cpp: null, whole_price_usd: null });
           db.listings.push(l); q.listing_id = l.id; q.member_id = m ? m.id : null; q.attach = attach;
-          res = { quote_id: q.id, listing_id: l.id, attach: attach, listing_status: status };
+          res = { quote_id: q.id, listing_id: l.id, attach: attach, listing_status: status, listing_type: m ? 'member' : 'house', ref: 'Q-' + q.id.replace(/-/g, '').slice(0, 6).toUpperCase() };
         }
         save(db); return res;
       },
@@ -347,6 +357,34 @@
         var db = load(), u = need(db); if (!u.is_admin) fail('Admins only.');
         return clone({ profiles: db.profiles.slice().reverse(), listings: db.listings.slice().reverse(), offers: db.offers.slice().sort(function (a, b) { return b.updated_at < a.updated_at ? -1 : 1; }),
           quotes: db.quotes.slice().reverse(), events: db.events.slice().reverse(), waLog: db.waLog });
+      },
+      async adminSetQuoteEmail(id, email) {
+        var db = load(), u = need(db); if (!u.is_admin) fail('Admins only.');
+        email = String(email || '').trim().toLowerCase(); if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) fail('That email address looks wrong.');
+        var q = db.quotes.find(function (x) { return x.id === id; }); if (q) { q.email = email; save(db); }
+      },
+      async adminConvertHouseListing(id) {
+        var db = load(), u = need(db); if (!u.is_admin) fail('Admins only.');
+        var q = db.quotes.find(function (x) { return x.id === id; }); if (!q || !q.listing_id) fail('This request has no listing.');
+        var l = db.listings.find(function (x) { return x.id === q.listing_id; }); if (!l || !l.managed) fail('This is already a member listing.');
+        var m = q.member_id ? db.profiles.find(function (x) { return x.id === q.member_id; }) : q.email && db.profiles.find(function (x) { return x.email === q.email; });
+        if (!m) fail('The customer has no marketplace account yet. Add their email first.');
+        l.seller_id = m.id; l.managed = false; q.member_id = m.id; q.attach = 'converted'; q.wants_listing = true; save(db);
+      },
+      async adminUpdateQuoteContact(id, name, phone) {
+        var db = load(), u = need(db); if (!u.is_admin) fail('Admins only.');
+        if (phone && String(phone).replace(/\D/g, '').length < 7) fail('That phone number looks too short.');
+        var q = db.quotes.find(function (x) { return x.id === id; }); if (q) { if (name) q.name = name; if (phone) q.phone = phone; save(db); }
+      },
+      async adminCreateListing(p) {
+        var db = load(), u = need(db); if (!u.is_admin) fail('Admins only.');
+        validateListing(p);
+        var q = { id: uuid(), created_at: now(), source: 'admin', name: p.seller_name || '', phone: p.seller_phone || '', email: '', programme: p.programme, programme_type: p.programme_type || 'other', balance: p.balance,
+          sell_whole: !!p.sell_whole, sell_partial: !!p.sell_partial, min_per_deal: p.sell_partial ? p.min_per_deal || null : null, offers_booking: !!p.offers_booking, price_mode: p.price_mode || 'offers',
+          price_cpp: p.price_mode === 'fixed' ? p.price_cpp : null, whole_price_usd: p.price_mode === 'fixed' ? p.whole_price_usd : null, wants_listing: true, attach: 'managed', status: 'contacted', listing_id: null };
+        var l = { id: uuid(), seller_id: u.id, programme: q.programme, programme_type: q.programme_type, balance: q.balance, sell_whole: q.sell_whole, sell_partial: q.sell_partial, min_per_deal: q.min_per_deal,
+          offers_booking: q.offers_booking, price_mode: q.price_mode, price_cpp: q.price_cpp, whole_price_usd: q.whole_price_usd, elite_status: p.elite_status || '', notes: p.notes || '', status: 'active', managed: true, quote_id: q.id, created_at: now(), updated_at: now() };
+        q.listing_id = l.id; db.quotes.push(q); db.listings.push(l); save(db); return l.id;
       },
       async adminSetQuoteStatus(id, status) { var db = load(), u = need(db); if (!u.is_admin) fail('Admins only.'); var q = db.quotes.find(function (x) { return x.id === id; }); if (q) { q.status = status; save(db); } },
       async adminMarkWa(eventId, recipient) { var db = load(), u = need(db); if (!u.is_admin) fail('Admins only.'); if (!db.waLog.some(function (w) { return w.event_id === eventId && w.recipient === recipient; })) { db.waLog.push({ event_id: eventId, recipient: recipient, sent_at: now() }); save(db); } },

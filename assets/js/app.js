@@ -44,6 +44,8 @@
       var x = m[s] || ['grey', s]; return '<span class="chip ' + x[0] + '">' + U.esc(x[1]) + '</span>';
     },
     optionChips: function (l) {
+      // House listings (offered by AirMilesHK) show the badge only: programme + balance, nothing about the customer.
+      if (l.managed) return '<div class="chips"><span class="chip gold">Offered by AirMilesHK</span></div>';
       var c = [];
       if (l.sell_whole) c.push('<span class="chip navy">Whole account</span>');
       if (l.sell_partial) c.push('<span class="chip navy">Partial' + (l.min_per_deal ? ' · min ' + U.short(l.min_per_deal) : '') + '</span>');
@@ -56,6 +58,7 @@
         if (l.price_cpp) return { v: U.cpp(l.price_cpp), k: 'per mile/pt' };
         if (l.whole_price_usd) return { v: U.usd(l.whole_price_usd), k: 'whole account' };
       }
+      if (l.managed) return { v: 'Price on request', k: 'make an offer' };
       return { v: 'Open to offers', k: 'make a bid' };
     },
     // Clean public URL for a listing (Netlify rewrites /listing/<id> to listing.html).
@@ -67,9 +70,9 @@
       return '<a class="l-card" href="' + U.listingUrl(l.id) + '">' +
         '<div class="l-head"><div><div class="l-prog">' + U.esc(l.programme) + '</div><div class="l-type">' + U.esc(U.typeLabel[l.programme_type] || '') + '</div></div>' +
         '<div class="l-price"><div class="v">' + U.esc(p.v) + '</div><div class="k">' + U.esc(p.k) + '</div></div></div>' +
-        '<div class="l-bal">' + U.num(l.balance) + '<small>' + (l.programme_type === 'hotel' ? 'points' : 'miles') + '</small></div>' +
+        '<div class="l-bal">' + U.num(l.balance) + '<small>' + (l.programme_type === 'hotel' ? 'points' : 'miles') + (l.managed ? ' available' : '') + '</small></div>' +
         U.optionChips(l) +
-        '<div class="l-foot"><span>' + (l.managed ? 'Listed via AirMilesHK' : l.seller ? 'by ' + U.esc(l.seller.display_name) : '') + (mine ? ' · <strong>your listing</strong>' : '') + '</span><span>' + U.ago(l.created_at) + '</span></div>' +
+        '<div class="l-foot"><span>' + (l.managed ? 'Offered by AirMilesHK' : l.seller ? 'by ' + U.esc(l.seller.display_name) : '') + (mine ? ' · <strong>your listing</strong>' : '') + '</span><span>' + U.ago(l.created_at) + '</span></div>' +
       '</a>';
     },
     programmeOptions: function (selected) {

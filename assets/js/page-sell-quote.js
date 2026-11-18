@@ -47,14 +47,14 @@
     var programme = f.prog.value === '__other' ? f.other.value.trim() : f.prog.value;
     var balance = U.parseNum(f.balance.value), minq = f.partial.checked ? U.parseNum(f.minq.value) : null;
     var cpp = pm() === 'fixed' ? U.parseDec(f.cpp.value) : null, wp = pm() === 'fixed' && f.whole.checked ? U.parseDec(f.wprice.value) : null;
-    var wants = f.list.checked;
+    var wants = f.list.checked;   // ticked = own member listing; not ticked = anonymous AirMilesHK house listing
     if (digits.length < 7) return say('Enter your WhatsApp or phone number.');
     if (!f.cc.value && !/^\s*\+/.test(num)) return say('Choose your country code, or type the full number starting with +.');
     if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return say('That email address looks wrong.');
     if (!programme || programme.length < 2) return say('Choose your programme.');
     if (!balance || balance <= 0) return say('Enter your balance.');
-    if (wants && !f.partial.checked && !f.whole.checked && !f.book.checked) return say('To list on the marketplace, choose at least one way to sell.');
-    if (wants && pm() === 'fixed' && !cpp && !wp) return say('Enter your price, or choose "Open to offers".');
+    if (wants && !email) return say('To list under your own name, add your email (you will use it to sign in and manage your ad). Or untick the box.');
+    if (pm() === 'fixed' && !cpp && !wp) return say('Enter your price, or choose "Open to offers".');
     if (cpp && (cpp <= 0 || cpp >= 100)) return say('Price per mile should be in US cents, e.g. 1.25.');
 
     var btn = U.$('#q-send'); U.btnBusy(btn, true, 'Sending…');
@@ -71,20 +71,20 @@
         price_mode: pm(), price_cpp: cpp, whole_price_usd: wp, wants_listing: wants, website: f.hp.value
       });
       var unit = type() === 'hotel' ? 'points' : 'miles';
-      var listedLine = !res.listing_id ? 'No' : res.attach === 'existing_member' ? 'Yes (added to my account, paused)' : 'Yes';
+      var listedLine = res.listing_type === 'member' ? (res.attach === 'existing_member' ? 'Yes, under my own account (paused)' : 'Yes, under my own name') : 'No (AirMilesHK may advertise it anonymously)';
       var text = 'Hello AirMilesHK! I would like a quote to sell my ' + programme + '.\n' +
         'Balance: ' + U.num(balance) + ' ' + unit + '\n' +
         (pm() === 'fixed' && (cpp || wp) ? 'My price: ' + (cpp ? U.cpp(cpp) + ' per ' + unit.replace(/s$/, '') : U.usd(wp) + ' for the whole account') + '\n' : '') +
         'Listed on the Marketplace: ' + listedLine + '\n' + (name ? 'Name: ' + name : '');
       var wa = 'https://wa.me/' + (CFG.WHATSAPP || '85294400450') + '?text=' + encodeURIComponent(text.trim());
-      var head = !res.listing_id ? 'Request received' : res.attach === 'existing_member' ? 'Added to your account' : 'Your ad is live';
+      var head = res.listing_type !== 'member' ? 'Request received' : res.attach === 'existing_member' ? 'Added to your account' : 'Your ad is live';
       var line = !res.listing_id ? 'Send us the WhatsApp message and we will reply with a quote.'
         : res.attach === 'new_member' ? 'We emailed you a login link so you can edit your ad and get bid alerts. Now send us the WhatsApp message for your quote.'
         : res.attach === 'existing_member' ? 'You already have a marketplace account, so we added the ad there, paused. Sign in to switch it on. Now send us the WhatsApp message for your quote.'
-        : 'AirMilesHK lists it on your behalf and will contact you on WhatsApp about any bids. Now send us the WhatsApp message for your quote.';
+        : 'Now send us the WhatsApp message and we will reply with a quote. Meanwhile AirMilesHK may advertise your balance anonymously to our buyers. Your details are never shown.';
       U.$('#qf').outerHTML = '<div class="form-card done-card"><div class="big">' + head + '</div><p>' + line + '</p>' +
         '<a class="btn" style="background:#25D366;color:#fff" href="' + wa + '" target="_blank" rel="noopener">Open WhatsApp →</a>' +
-        (res.listing_id && res.listing_status === 'active' ? '<p class="mt"><a class="lnk" href="' + U.listingUrl(res.listing_id) + '">See your ad</a></p>' : '') + '</div>';
+        (res.listing_type === 'member' && res.listing_status === 'active' ? '<p class="mt"><a class="lnk" href="' + U.listingUrl(res.listing_id) + '">See your ad</a></p>' : '') + '</div>';
       window.scrollTo({ top: 0, behavior: 'smooth' });
       setTimeout(function () { location.href = wa; }, 1500);
     } catch (x) { say(U.esc(x.message)); U.btnBusy(btn, false); }

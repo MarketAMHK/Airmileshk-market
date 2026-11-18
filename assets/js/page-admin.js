@@ -31,6 +31,7 @@
     else if (ev.action === 'decline') { var b = person('buyer'); b.text = 'Hi ' + firstName(b.name) + ', the seller declined your offer on ' + prog + '. See other listings: ' + SITE + (U.programmeUrl(prog) || '/'); out.push(b); }
     return out;
   }
+  function quoteRef(q) { return 'Q-' + String(q.id || '').replace(/-/g, '').slice(0, 6).toUpperCase(); }
   function waSent(ev, role) { return d.waLog.some(function (w) { return w.event_id === ev.id && w.recipient === role; }); }
 
   async function load() {
@@ -111,10 +112,10 @@
       rows = d.quotes.filter(function (q) {
         if (st === 'listed' && !q.listing_id) return false; if (st === 'unlisted' && q.listing_id) return false;
         if (['new', 'contacted', 'closed'].indexOf(st) >= 0 && q.status !== st) return false;
-        return hit(q.name, q.phone, q.email, q.programme);
+        return hit(q.name, q.phone, q.email, q.programme, quoteRef(q));
       });
-      var attachLabel = { new_member: 'Live · new member', existing_member: 'Added to member (paused)', managed: 'Live · via AirMilesHK' };
-      head = ['Received', 'Seller', 'Phone', 'Email', 'Programme', 'Balance', 'Price', 'Marketplace ad', 'Status', ''];
+      var attachLabel = { new_member: 'New member', existing_member: 'Existing member (added paused)', managed: 'Offered by AirMilesHK', converted: 'Switched to member' };
+      head = ['Received', 'Seller', 'Phone', 'Email', 'Programme', 'Balance', 'Price asked', 'Listing type', 'Marketplace ad', 'Status', ''];
       body = rows.map(function (q) {
         var l = q.listing_id ? d.lById[q.listing_id] : null, unit = q.programme_type === 'hotel' ? 'points' : 'miles';
         var wa = waLink(q.phone, 'Hi ' + firstName(q.name) + ', thanks for your ' + q.programme + ' quote request (' + U.num(q.balance) + ' ' + unit + ') on AirMilesHK. ');
@@ -122,11 +123,13 @@
         var ad = !l ? '<span class="muted">Not listed</span>' :
           '<a href="' + U.listingUrl(l.id) + '">' + U.esc(attachLabel[q.attach] || 'Listed') + '</a> ' + U.statusChip(l.status) +
           '<div class="actions" style="margin-top:6px">' + (l.status === 'active' ? '<button class="btn ol sm" data-l="' + l.id + '" data-st="paused">Pause</button>' : l.status === 'paused' ? '<button class="btn sm" data-l="' + l.id + '" data-st="active">Make live</button>' : '') +
-          (l.status !== 'removed' ? '<button class="btn danger sm" data-l="' + l.id + '" data-st="removed">Remove</button>' : '') + '</div>';
+          (l.status !== 'removed' ? '<button class="btn danger sm" data-l="' + l.id + '" data-st="removed">Remove</button>' : '') +
+          (l.managed && l.status !== 'removed' ? '<button class="btn ol sm" data-convert="' + q.id + '" title="Move this ad to the customer\'s own member account">Switch to member</button>' : '') + '</div>';
+        var ltype = !l ? '—' : l.managed ? '<span class="chip gold">AirMilesHK</span>' : '<span class="chip navy">Member</span>';
         var stSel = '<select class="f-select" style="padding:6px 30px 6px 10px;font-size:.8rem;min-width:120px" data-q="' + q.id + '">' +
           ['new', 'contacted', 'closed'].map(function (s) { return '<option' + (q.status === s ? ' selected' : '') + ' value="' + s + '">' + s[0].toUpperCase() + s.slice(1) + '</option>'; }).join('') + '</select>';
-        return '<tr><td>' + U.ago(q.created_at) + '</td><td><strong>' + U.esc(q.name || '—') + '</strong></td><td>' + U.esc(q.phone) + '</td><td>' + U.esc(q.email || '—') + '</td>' +
-          '<td>' + U.esc(q.programme) + '</td><td>' + U.num(q.balance) + '</td><td>' + U.esc(price) + '</td><td>' + ad + '</td><td>' + stSel + '</td>' +
+        return '<tr><td>' + U.ago(q.created_at) + (q.source === 'admin' ? ' <span class="chip gold">Added by you</span>' : q.source === 'mainsite' ? ' <span class="chip navy">airmileshk.com</span>' : '') + '<div class="muted" style="font-size:.72rem;font-family:JetBrains Mono,monospace">' + quoteRef(q) + '</div></td><td><strong>' + U.esc(q.name || '—') + '</strong></td><td>' + (q.phone ? U.esc(q.phone) : '<button class="btn ol sm" data-qphone="' + q.id + '">Add phone</button>') + '</td><td>' + U.esc(q.email || '—') + '</td>' +
+          '<td>' + U.esc(q.programme) + '</td><td>' + U.num(q.balance) + '</td><td>' + U.esc(price) + '</td><td>' + ltype + '</td><td>' + ad + '</td><td>' + stSel + '</td>' +
           '<td>' + (wa ? '<a class="btn wa sm" target="_blank" rel="noopener" href="' + wa + '">WhatsApp</a>' : '') + '</td></tr>';
       });
       rowsForCsv = [['id', 'received', 'name', 'phone', 'email', 'programme', 'balance', 'price_mode', 'price_cpp', 'whole_price_usd', 'partial', 'min_per_deal', 'whole', 'booking', 'wants_listing', 'listing_id', 'attach', 'status']].concat(rows.map(function (q) {
@@ -183,6 +186,37 @@
         }).catch(function (e) { U.toast(e.message, true); });
       });
     });
+    // Switch a house listing to the customer's own member listing.
+    U.$$('#tbl [data-convert]').forEach(function (b) {
+      b.onclick = async function () {
+        var q = d.qById[b.dataset.convert]; if (!q) return;
+        var email = q.email;
+        if (!email) {
+          email = (prompt('Customer\'s email for ' + quoteRef(q) + '. They will get a sign-in link to manage the ad:', '') || '').trim();
+          if (!email) return;
+        }
+        var hasAccount = d.profiles.some(function (p) { return (p.email || '').toLowerCase() === email.toLowerCase(); });
+        if (!confirm('Move the ' + q.programme + ' ad to ' + email + '\'s own member account?\n\n' +
+          (hasAccount ? 'They already have an account; the ad moves there.' : 'We will email them a sign-in link to create their account and manage the ad.') +
+          '\nOffers already made on it stay with you.')) return;
+        U.btnBusy(b, true, 'Switching…');
+        try {
+          if (email !== q.email) await API.adminSetQuoteEmail(q.id, email);
+          if (!hasAccount) await API.quoteSignup(email, { full_name: q.name || '', display_name: (String(q.name || '').split(/\s+/)[0] || 'Member').slice(0, 40), whatsapp: q.phone || '', role: 'seller' });
+          await API.adminConvertHouseListing(q.id);
+          U.toast('Switched to a member listing'); load();
+        } catch (e) { U.toast(e.message, true); U.btnBusy(b, false); }
+      };
+    });
+    U.$$('#tbl [data-qphone]').forEach(function (b) {
+      b.onclick = async function () {
+        var q = d.qById[b.dataset.qphone]; if (!q) return;
+        var phone = prompt('Seller\'s WhatsApp number for ' + quoteRef(q) + ' (with country code, e.g. +852 9123 4567):', '');
+        if (!phone) return;
+        var name = q.name ? q.name : (prompt('Seller\'s name (optional):', '') || '');
+        try { await API.adminUpdateQuoteContact(q.id, name, phone); U.toast('Saved'); load(); } catch (e) { U.toast(e.message, true); }
+      };
+    });
     U.$$('#tbl select[data-q]').forEach(function (s) {
       s.onchange = async function () {
         try { await API.adminSetQuoteStatus(s.dataset.q, s.value); d.qById[s.dataset.q].status = s.value; U.toast('Status updated'); }
@@ -197,6 +231,44 @@
       };
     });
   }
+
+  /* ── Create ad (admin-posted, "Listed via AirMilesHK") ── */
+  var af = { prog: U.$('#ad-prog'), other: U.$('#ad-other'), ptype: U.$('#ad-ptype'), bal: U.$('#ad-bal'), partial: U.$('#ad-partial'), min: U.$('#ad-min'),
+             whole: U.$('#ad-whole'), book: U.$('#ad-book'), mode: U.$('#ad-mode'), cpp: U.$('#ad-cpp'), wp: U.$('#ad-wp'), elite: U.$('#ad-elite'),
+             notes: U.$('#ad-notes'), sname: U.$('#ad-sname'), sphone: U.$('#ad-sphone') };
+  af.prog.innerHTML = U.programmeOptions();
+  function adSync() {
+    U.$('#ad-other-row').classList.toggle('hide', af.prog.value !== '__other');
+    U.$('#ad-price-row').classList.toggle('hide', af.mode.value !== 'fixed');
+    af.min.classList.toggle('hide', !af.partial.checked);
+  }
+  U.$$('#ad-form input, #ad-form select').forEach(function (i) { i.addEventListener('change', adSync); });
+  adSync();
+  U.$('#new-ad-btn').onclick = function () { U.$('#ad-form').classList.toggle('hide'); af.prog.focus(); };
+  U.$('#ad-close').onclick = function () { U.$('#ad-form').classList.add('hide'); };
+  U.$('#ad-form').onsubmit = async function (e) {
+    e.preventDefault();
+    var msg = U.$('#ad-msg'), opt = af.prog.selectedOptions[0];
+    var programme = af.prog.value === '__other' ? af.other.value.trim() : af.prog.value;
+    var p = {
+      programme: programme, programme_type: af.prog.value === '__other' ? af.ptype.value : (opt && opt.dataset.type) || 'other',
+      balance: U.parseNum(af.bal.value), sell_partial: af.partial.checked, min_per_deal: af.partial.checked ? U.parseNum(af.min.value) : null,
+      sell_whole: af.whole.checked, offers_booking: af.book.checked, price_mode: af.mode.value,
+      price_cpp: af.mode.value === 'fixed' ? U.parseDec(af.cpp.value) : null, whole_price_usd: af.mode.value === 'fixed' ? U.parseDec(af.wp.value) : null,
+      elite_status: af.elite.value.trim(), notes: af.notes.value.trim(), seller_name: af.sname.value.trim(), seller_phone: af.sphone.value.trim()
+    };
+    if (!programme) { msg.innerHTML = '<div class="note red mb">Choose a programme.</div>'; return; }
+    if (!p.balance) { msg.innerHTML = '<div class="note red mb">Enter the balance.</div>'; return; }
+    var btn = U.$('#ad-save'); U.btnBusy(btn, true, 'Publishing…');
+    try {
+      var id = await API.adminCreateListing(p);
+      msg.innerHTML = '<div class="note green mb">Published: ' + U.esc(programme) + ' — ' + U.num(p.balance) + '. <a class="lnk" href="' + U.listingUrl(id) + '" target="_blank">View ad ↗</a></div>';
+      if (U.$('#ad-keep').checked) { af.bal.value = ''; af.sname.value = ''; af.sphone.value = ''; af.bal.focus(); }
+      else { U.$('#ad-form').reset(); af.prog.innerHTML = U.programmeOptions(); adSync(); }
+      load();
+    } catch (x) { msg.innerHTML = '<div class="note red mb">' + U.esc(x.message) + '</div>'; }
+    U.btnBusy(btn, false);
+  };
 
   U.$$('#tabs button').forEach(function (b) { b.onclick = function () { setTab(b.dataset.tab); }; });
   U.$('#search').oninput = render;

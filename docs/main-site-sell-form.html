@@ -1,0 +1,55 @@
+<!--
+  ════════════════════════════════════════════════════════════════════
+  airmileshk.com — "Get a cash valuation in minutes" form (sell-miles.html)
+  Drop-in update: every request is saved and listed anonymously on
+  market.airmileshk.com, then WhatsApp opens with a reference code.
+
+  In airmileshk.com/sell-miles.html make TWO replacements:
+
+  1) Replace this line (under the green button):
+       <p style="font-size:.76rem;color:#8A9BB5;margin:10px 0 0">Nothing is stored on this site — the button only opens WhatsApp with your message pre-filled.</p>
+     with the <p> marked "REPLACEMENT 1" below.
+
+  2) Replace the whole <script> … function hkSellQuote(){ … } … </script> block
+     that comes right after the form with the <script> marked "REPLACEMENT 2" below.
+
+  Nothing else on the page changes. The form fields (sq-prog, sq-amt, sq-note)
+  and the button stay exactly as they are.
+  ════════════════════════════════════════════════════════════════════
+-->
+
+<!-- REPLACEMENT 1 -->
+<p style="font-size:.76rem;color:#8A9BB5;margin:10px 0 0">We save your request and list your miles or points anonymously on the <a href="https://market.airmileshk.com/" style="color:#8A9BB5">AirMilesHK Marketplace</a> so members can bid. Your name and number are never shown. Most programmes prohibit account transfers; see the <a href="https://market.airmileshk.com/terms.html" style="color:#8A9BB5">marketplace rules</a>.</p>
+
+<!-- REPLACEMENT 2 -->
+<script>
+function hkSellQuote(){
+  function g(id){return (document.getElementById(id).value||'').trim();}
+  // Main-site option text → marketplace programme name and type.
+  var MAP={'Cathay Asia Miles':['Cathay Pacific Asia Miles','airline'],'Flying Blue (AF/KLM)':['Flying Blue (Air France/KLM)','airline'],
+    'Qatar Avios':['Qatar Airways Avios','airline'],'Virgin Atlantic':['Virgin Atlantic Flying Club','airline'],
+    'Marriott Bonvoy points':['Marriott Bonvoy','hotel'],'Hilton Honors points':['Hilton Honors','hotel'],
+    'World of Hyatt points':['World of Hyatt','hotel'],'IHG One Rewards points':['IHG One Rewards','hotel']};
+  var prog=g('sq-prog'), m=MAP[prog]||[prog,'airline'];
+  if(prog==='Other programme')m=['Other programme','other'];
+  var lines=['Hi! I want to sell miles/points:','',
+    '🎯 Programme: '+prog,
+    '🔢 Amount: '+(g('sq-amt')||'-')];
+  if(g('sq-note'))lines.push('📝 Notes: '+g('sq-note'));
+  // Open the WhatsApp tab right away (inside the click) so pop-up blockers allow it; fill it in after saving.
+  var w=window.open('about:blank','_blank'); if(w){try{w.opener=null;}catch(e){}}
+  function go(ref){
+    var msg=lines.slice(); if(ref)msg.push('🔖 Ref: '+ref); msg.push('','Please send me your offer.');
+    var url='https://wa.me/85294400450?text='+encodeURIComponent(msg.join('\n'));
+    if(w&&!w.closed)w.location.href=url; else location.href=url;
+  }
+  var done=false; var timer=setTimeout(function(){if(!done){done=true;go('');}},5000);
+  fetch('https://poreidsuzrdqionmbgql.supabase.co/rest/v1/rpc/submit_sell_quote',{
+    method:'POST',
+    headers:{'apikey':'sb_publishable_vZjW6Rn5SokT3Ze8WweBMg_pQgURxdw','Content-Type':'application/json'},
+    body:JSON.stringify({p:{source:'mainsite',programme:m[0],programme_type:m[1],balance:g('sq-amt'),notes:g('sq-note'),sell_partial:true,price_mode:'offers'}})
+  }).then(function(r){return r.ok?r.json():null;}).then(function(res){
+    if(done)return; done=true; clearTimeout(timer); go(res&&res.ref?res.ref:'');
+  }).catch(function(){ if(done)return; done=true; clearTimeout(timer); go(''); });
+}
+</script>

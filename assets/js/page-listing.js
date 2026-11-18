@@ -11,8 +11,8 @@
   var mine = ctx.user && ctx.user.id === l.seller_id;
   document.title = l.programme + ' — ' + U.short(l.balance) + ' ' + unit + ' | AirMilesHK Marketplace';
   // SEO: description, canonical clean URL, keep inactive listings out of Google.
-  var desc = U.num(l.balance) + ' ' + l.programme + ' ' + unit + ' listed by a member on the AirMilesHK Marketplace. ' +
-    (l.price_mode !== 'fixed' ? 'Open to offers. ' : l.price_cpp ? 'Asking ' + U.cpp(l.price_cpp) + ' per ' + unit.replace(/s$/, '') + '. ' : 'Asking ' + U.usd(l.whole_price_usd) + ' for the whole account. ') +
+  var desc = U.num(l.balance) + ' ' + l.programme + ' ' + unit + (l.managed ? ' available from AirMilesHK on the AirMilesHK Marketplace. ' : ' listed by a member on the AirMilesHK Marketplace. ') +
+    (l.managed ? 'Price on request — make an offer. ' : l.price_mode !== 'fixed' ? 'Open to offers. ' : l.price_cpp ? 'Asking ' + U.cpp(l.price_cpp) + ' per ' + unit.replace(/s$/, '') + '. ' : 'Asking ' + U.usd(l.whole_price_usd) + ' for the whole account. ') +
     'Make an offer safely, with AirMilesHK holding payment until delivery.';
   function meta(attr, key, val) { var m = document.querySelector('meta[' + attr + '="' + key + '"]'); if (!m) { m = document.createElement('meta'); m.setAttribute(attr, key); document.head.appendChild(m); } m.setAttribute('content', val); }
   meta('name', 'description', desc); meta('property', 'og:title', document.title); meta('property', 'og:description', desc);
@@ -21,8 +21,8 @@
   var purl = U.programmeUrl(l.programme);
   U.$('#l-type').innerHTML = purl ? '<a href="' + purl + '" style="color:inherit;text-decoration:none">' + U.esc(l.programme) + ' listings</a>' : U.esc(U.typeLabel[l.programme_type] || 'Listing');
   U.$('#l-title').innerHTML = U.esc(l.programme);
-  U.$('#l-sub').textContent = 'Listed by ' + (l.managed ? 'AirMilesHK on behalf of a member' : l.seller ? l.seller.display_name : 'a member') + ' · ' + U.ago(l.created_at) + (l.status !== 'active' ? ' · ' + l.status.toUpperCase() : '');
-  U.$('#l-bal').innerHTML = U.num(l.balance) + '<small>' + unit + '</small>';
+  U.$('#l-sub').textContent = (l.managed ? 'Offered by AirMilesHK' : 'Listed by ' + (l.seller ? l.seller.display_name : 'a member')) + ' · ' + U.ago(l.created_at) + (l.status !== 'active' ? ' · ' + l.status.toUpperCase() : '');
+  U.$('#l-bal').innerHTML = U.num(l.balance) + '<small>' + unit + (l.managed ? ' available' : '') + '</small>';
   var p = U.priceLine(l); U.$('#l-price').textContent = p.v; U.$('#l-price-k').textContent = p.k;
   U.$('#l-chips').innerHTML = U.optionChips(l);
   var kv = [
@@ -31,7 +31,8 @@
     [l.programme_type === 'hotel' ? 'Books stays for you' : 'Issues tickets for you', l.offers_booking ? 'Yes' : 'No'],
     ['Asking price', l.price_mode !== 'fixed' ? 'Open to offers' : l.price_cpp ? U.cpp(l.price_cpp) + ' per ' + unit.replace(/s$/, '') + ' (' + U.usd(l.price_cpp * 10) + ' / 1,000)' : U.usd(l.whole_price_usd) + ' for the whole account']
   ];
-  if (l.elite_status) kv.push(['Elite status', l.elite_status]);
+  if (l.managed) kv = [['Available', U.num(l.balance) + ' ' + unit], ['Price', 'Price on request / make an offer'], ['Offered by', 'AirMilesHK']];
+  if (l.elite_status && !l.managed) kv.push(['Elite status', l.elite_status]);
   if (l.seller && !l.managed) kv.push(['Member since', U.date(l.seller.created_at)]);
   U.$('#l-kv').innerHTML = kv.map(function (r) { return '<dt>' + U.esc(r[0]) + '</dt><dd>' + U.esc(r[1]) + '</dd>'; }).join('');
   if (l.notes) U.$('#l-notes').textContent = l.notes; else U.$('#notes-card').style.display = 'none';
