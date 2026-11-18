@@ -96,7 +96,7 @@ $HEAD_FONTS
   <div class="ey"><a href="/" style="color:inherit;text-decoration:none">Marketplace</a> · $TYPE{$type}</div>
   <h1>$N <em>$unit</em></h1>
   <p class="hs">@{[esc($blurb)]} On the AirMilesHK Marketplace, members list the $N $unit they have, and buyers make offers or request $book. When a deal is agreed, AirMilesHK holds the payment until the seller delivers.</p>
-  <div class="actions mt"><a href="#listings" class="btn">See $N listings →</a><a href="/sell.html" class="btn-ghost">List your $N $unit</a></div>
+  <div class="actions mt"><a href="#listings" class="btn">See $N listings →</a><a href="/sell-quote?programme=$slug" class="btn-ghost">Sell your $N $unit</a></div>
 </div></section>
 
 <section id="listings" class="sec"><div class="W">
@@ -144,7 +144,7 @@ $index =~ s{<!--PROGRAMMES-->.*?<!--/PROGRAMMES-->}{$block}s or die "PROGRAMMES 
 spit('index.html', $index);
 
 # sitemap.xml — public pages only.
-my @urls = ('/', (map { "/$_->[0]" } @P), '/terms.html');
+my @urls = ('/', (map { "/$_->[0]" } @P), '/sell-quote', '/terms.html');
 spit('sitemap.xml', qq{<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n} .
   join('', map { "  <url><loc>$SITE$_</loc><lastmod>$today</lastmod></url>\n" } @urls) . "</urlset>\n");
 

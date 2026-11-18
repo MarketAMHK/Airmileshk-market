@@ -21,7 +21,7 @@
   var purl = U.programmeUrl(l.programme);
   U.$('#l-type').innerHTML = purl ? '<a href="' + purl + '" style="color:inherit;text-decoration:none">' + U.esc(l.programme) + ' listings</a>' : U.esc(U.typeLabel[l.programme_type] || 'Listing');
   U.$('#l-title').innerHTML = U.esc(l.programme);
-  U.$('#l-sub').textContent = 'Listed by ' + (l.seller ? l.seller.display_name : 'a member') + ' · ' + U.ago(l.created_at) + (l.status !== 'active' ? ' · ' + l.status.toUpperCase() : '');
+  U.$('#l-sub').textContent = 'Listed by ' + (l.managed ? 'AirMilesHK on behalf of a member' : l.seller ? l.seller.display_name : 'a member') + ' · ' + U.ago(l.created_at) + (l.status !== 'active' ? ' · ' + l.status.toUpperCase() : '');
   U.$('#l-bal').innerHTML = U.num(l.balance) + '<small>' + unit + '</small>';
   var p = U.priceLine(l); U.$('#l-price').textContent = p.v; U.$('#l-price-k').textContent = p.k;
   U.$('#l-chips').innerHTML = U.optionChips(l);
@@ -32,7 +32,7 @@
     ['Asking price', l.price_mode !== 'fixed' ? 'Open to offers' : l.price_cpp ? U.cpp(l.price_cpp) + ' per ' + unit.replace(/s$/, '') + ' (' + U.usd(l.price_cpp * 10) + ' / 1,000)' : U.usd(l.whole_price_usd) + ' for the whole account']
   ];
   if (l.elite_status) kv.push(['Elite status', l.elite_status]);
-  if (l.seller) kv.push(['Member since', U.date(l.seller.created_at)]);
+  if (l.seller && !l.managed) kv.push(['Member since', U.date(l.seller.created_at)]);
   U.$('#l-kv').innerHTML = kv.map(function (r) { return '<dt>' + U.esc(r[0]) + '</dt><dd>' + U.esc(r[1]) + '</dd>'; }).join('');
   if (l.notes) U.$('#l-notes').textContent = l.notes; else U.$('#notes-card').style.display = 'none';
   U.$('#wrap').classList.remove('hide');

@@ -270,3 +270,18 @@ table.tbl{width:100%;border-collapse:collapse;font-size:.85rem}
 .prose h3{margin-top:22px}
 .prose ul,.prose ol{padding-left:22px;margin-bottom:14px}
 .prose li{font-size:.93rem;color:var(--t2);line-height:1.75;margin-bottom:6px}
+
+/* ── 5. Add-ons: notification bell, notification list, admin WhatsApp ── */
+.nav-bell{position:relative;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:8px;color:#0B1F45;text-decoration:none;flex-shrink:0;margin-left:-8px}
+.nav-bell:hover{background:#F1F4F9}
+.nav-bell .bell-n{position:absolute;top:4px;right:2px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#C49A3C;color:#0B1F45;font-size:.66rem;font-weight:700;line-height:18px;text-align:center;font-family:'Inter',sans-serif}
+@media(max-width:1080px){.nav-bell{margin-left:auto;margin-right:4px}}
+.notif{display:flex;gap:14px;align-items:flex-start;background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 16px;text-decoration:none;color:inherit}
+.notif.unread{border-left:3px solid var(--gold);background:#FFFDF8}
+.notif .dot{width:8px;height:8px;border-radius:50%;background:var(--gold);margin-top:7px;flex-shrink:0}
+.notif:not(.unread) .dot{background:var(--border)}
+.notif .t{font-weight:600;color:var(--navy);font-size:.92rem}
+.notif .s{font-size:.82rem;color:var(--t2);margin-top:2px;white-space:pre-wrap}
+.notif .w{font-size:.75rem;color:var(--t3);margin-top:4px}
+.btn.wa{background:#25D366;color:#fff}.btn.wa:hover{background:#1ebe5b;box-shadow:none}
+.btn.wa.sent{background:#E7F5EE;color:var(--green);border:1px solid #BFE3D0}

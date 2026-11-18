@@ -9,7 +9,30 @@
     history.replaceState(null, '', '#' + t);
   }
   U.$$('#tabs button').forEach(function (b) { b.onclick = function () { tab(b.dataset.tab); }; });
-  var start = location.hash.replace('#', ''); if (['received', 'sent', 'listings', 'profile'].indexOf(start) >= 0) tab(start);
+  var TABS = ['notifications', 'received', 'sent', 'listings', 'profile'];
+  var start = location.hash.replace('#', ''); if (TABS.indexOf(start) >= 0) tab(start);
+  window.addEventListener('hashchange', function () { var h = location.hash.replace('#', ''); if (TABS.indexOf(h) >= 0) tab(h); });
+
+  /* notifications */
+  async function loadNotifs() {
+    var box = U.$('#notifs');
+    try {
+      var list = await API.notifications(), unread = list.filter(function (n) { return !n.read_at; }).length;
+      U.$('#c-notif').textContent = unread || list.length; U.$('#c-notif').classList.toggle('hot', !!unread); U.setBell(unread);
+      box.innerHTML = list.length ? list.map(function (n) {
+        return '<a class="notif' + (n.read_at ? '' : ' unread') + '" href="' + U.esc(n.link || '#') + '" data-id="' + n.id + '"><span class="dot"></span><span>' +
+          '<div class="t">' + U.esc(n.title) + '</div>' + (n.body ? '<div class="s">' + U.esc(n.body) + '</div>' : '') +
+          '<div class="w">' + U.ago(n.created_at) + '</div></span></a>';
+      }).join('') : '<div class="empty"><h3>No notifications yet</h3><p>New bids, counter-offers and agreed deals will show up here, and we email you too.</p></div>';
+      U.$$('#notifs .notif.unread').forEach(function (a) {
+        a.addEventListener('click', async function (e) {
+          e.preventDefault(); try { await API.markRead([+a.dataset.id]); } catch (x) {} location.href = a.getAttribute('href');
+        });
+      });
+    } catch (e) { box.innerHTML = '<div class="note red">Could not load notifications: ' + U.esc(e.message) + '</div>'; }
+  }
+  U.$('#mark-all').onclick = async function () { try { await API.markRead(null); await loadNotifs(); } catch (e) { U.toast(e.message, true); } };
+  loadNotifs();
 
   function offerRow(o, asSeller) {
     var l = o.listing || {}, other = asSeller ? o.buyer : o.seller;

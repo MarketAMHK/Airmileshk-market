@@ -17,10 +17,15 @@
 </div></section>
 <section class="sec"><div class="W">
   <div class="tabs" role="tablist" id="tabs">
+    <button role="tab" data-tab="notifications" aria-selected="false">Notifications <span class="count" id="c-notif">0</span></button>
     <button role="tab" data-tab="received" aria-selected="true">Offers received <span class="count" id="c-received">0</span></button>
     <button role="tab" data-tab="sent" aria-selected="false">Offers sent <span class="count" id="c-sent">0</span></button>
     <button role="tab" data-tab="listings" aria-selected="false">My listings <span class="count" id="c-listings">0</span></button>
     <button role="tab" data-tab="profile" aria-selected="false">My details</button>
+  </div>
+  <div data-pane="notifications" class="hide">
+    <div class="actions mb"><button class="btn ol sm" id="mark-all">Mark all as read</button></div>
+    <div class="rows" id="notifs"><div class="loading">Loading…</div></div>
   </div>
   <div data-pane="received"><div class="rows" id="received"><div class="loading">Loading…</div></div></div>
   <div data-pane="sent" class="hide"><div class="rows" id="sent"></div></div>

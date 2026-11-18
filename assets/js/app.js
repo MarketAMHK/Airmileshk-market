@@ -69,7 +69,7 @@
         '<div class="l-price"><div class="v">' + U.esc(p.v) + '</div><div class="k">' + U.esc(p.k) + '</div></div></div>' +
         '<div class="l-bal">' + U.num(l.balance) + '<small>' + (l.programme_type === 'hotel' ? 'points' : 'miles') + '</small></div>' +
         U.optionChips(l) +
-        '<div class="l-foot"><span>' + (l.seller ? 'by ' + U.esc(l.seller.display_name) : '') + (mine ? ' · <strong>your listing</strong>' : '') + '</span><span>' + U.ago(l.created_at) + '</span></div>' +
+        '<div class="l-foot"><span>' + (l.managed ? 'Listed via AirMilesHK' : l.seller ? 'by ' + U.esc(l.seller.display_name) : '') + (mine ? ' · <strong>your listing</strong>' : '') + '</span><span>' + U.ago(l.created_at) + '</span></div>' +
       '</a>';
     },
     programmeOptions: function (selected) {
@@ -122,6 +122,7 @@
           '<span class="nav-in hide"><span class="who"></span> <button type="button" class="btn sm ol nav-signout">Sign out</button></span>' +
           '<a href="/login.html?mode=signup" class="hk-cta nav-cta">Join Free →</a>' +
         '</div>' +
+        '<a href="/account.html#notifications" class="nav-bell hide" aria-label="Notifications"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="bell-n hide"></span></a>' +
         '<button class="hk-burger" aria-label="Open menu" aria-expanded="false" aria-controls="hk-mobile-menu"><span></span><span></span><span></span></button>' +
       '</div>' +
       '<div class="hk-mobile" id="hk-mobile-menu">' +
@@ -146,7 +147,7 @@
           '<p>The AirMilesHK members marketplace — miles and hotel points, bought and sold with AirMilesHK in the middle. Independent miles broker since 2010, registered in Hong Kong and the United States.</p></div>' +
         '<div><h4>Marketplace</h4><ul>' +
           '<li><a href="/">Browse listings</a></li><li><a href="/sell.html">List your miles</a></li>' +
-          '<li><a href="/account.html">My deals</a></li><li><a href="/#how">How it works</a></li>' +
+          '<li><a href="/sell-quote">Get a sell quote</a></li><li><a href="/account.html">My deals</a></li><li><a href="/#how">How it works</a></li>' +
           '<li><a href="/terms.html">Marketplace rules</a></li></ul></div>' +
         '<div><h4>Airlines</h4><ul>' +
           '<li><a href="' + M + '/cathay-pacific-asia-miles">Cathay Pacific Asia Miles</a></li>' +
@@ -202,7 +203,17 @@
       el.href = user ? '/sell.html' : '/login.html?mode=signup';
     });
     var who = U.$('.hk-nav-user .who'); if (who) who.textContent = profile ? profile.display_name : '';
+    var bell = U.$('.nav-bell');
+    if (bell) {
+      bell.classList.toggle('hide', !user);
+      if (user && API.unreadCount) API.unreadCount().then(U.setBell).catch(function () {});
+    }
   }
+  U.setBell = function (n) {
+    var b = U.$('.bell-n'); if (!b) return;
+    b.textContent = n > 99 ? '99+' : String(n); b.classList.toggle('hide', !n);
+    var bell = U.$('.nav-bell'); if (bell) bell.setAttribute('aria-label', n ? n + ' unread notifications' : 'Notifications');
+  };
 
   /* ── page start ── options: { page, auth: 'required' | 'admin' } ── */
   async function start(opts) {

@@ -95,13 +95,36 @@
         return o;
       },
 
+      /* sell-quote form (public) */
+      async quoteSignup(email, meta) {
+        // Creates the member account (if new) and emails a login link.
+        chk(await sb.auth.signInWithOtp({ email: email, options: { shouldCreateUser: true, data: meta, emailRedirectTo: base() + 'account.html' } }));
+      },
+      async submitSellQuote(p) { return chk(await sb.rpc('submit_sell_quote', { p: p })); },
+
+      /* notifications */
+      async notifications() { return chk(await sb.from('notifications').select('*').order('created_at', { ascending: false }).limit(60)); },
+      async unreadCount() {
+        var r = await sb.from('notifications').select('id', { count: 'exact', head: true }).is('read_at', null);
+        if (r.error) throw new Error(r.error.message); return r.count || 0;
+      },
+      async markRead(ids) { chk(await sb.rpc('mark_notifications_read', { p_ids: ids && ids.length ? ids : null })); },
+
       async adminData() {
         var res = await Promise.all([
           sb.from('profiles').select('*').order('created_at', { ascending: false }),
           sb.from('listings').select('*').order('created_at', { ascending: false }),
-          sb.from('offers').select('*').order('updated_at', { ascending: false })
+          sb.from('offers').select('*').order('updated_at', { ascending: false }),
+          sb.from('quote_requests').select('*').order('created_at', { ascending: false }).limit(500),
+          sb.from('offer_events').select('*').order('id', { ascending: false }).limit(300),
+          sb.from('admin_wa_log').select('*')
         ]);
-        return { profiles: chk(res[0]), listings: chk(res[1]), offers: chk(res[2]) };
+        return { profiles: chk(res[0]), listings: chk(res[1]), offers: chk(res[2]), quotes: chk(res[3]), events: chk(res[4]), waLog: chk(res[5]) };
+      },
+      async adminSetQuoteStatus(id, status) { chk(await sb.rpc('admin_set_quote_status', { p_quote: id, p_status: status })); },
+      async adminMarkWa(eventId, recipient) {
+        var r = await sb.from('admin_wa_log').insert({ event_id: eventId, recipient: recipient });
+        if (r.error && !/duplicate/i.test(r.error.message)) throw new Error(r.error.message);
       },
       async adminUpdateOffer(id, status, message) { chk(await sb.rpc('admin_update_offer', { p_offer: id, p_status: status, p_message: message || '' })); },
       async adminSetSuspended(userId, value) { chk(await sb.rpc('admin_set_suspended', { p_user: userId, p_value: value })); },
@@ -134,7 +157,12 @@
       db.events.push({ id: 1, offer_id: 'o1', actor_id: 'u-buyer', action: 'offer', quantity: 100000, price_cpp: 1.1, total_usd: 1100, message: 'Hi — would you do 1.1¢ for 100k?', created_at: ago(1) });
       return db;
     }
-    function load() { try { var d = JSON.parse(localStorage.getItem(KEY)); if (d && d.profiles) return d; } catch (e) {} var s = seed(); save(s); return s; }
+    function load() {
+      var d = null; try { d = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
+      if (!d || !d.profiles) { d = seed(); save(d); }
+      ['notifications', 'quotes', 'waLog'].forEach(function (k) { if (!d[k]) d[k] = []; });
+      return d;
+    }
     function save(db) { localStorage.setItem(KEY, JSON.stringify(db)); }
     function me(db) { var id = localStorage.getItem(SKEY); return id ? db.profiles.find(function (p) { return p.id === id; }) || null : null; }
     function need(db) { var u = me(db); if (!u) fail('Please sign in first.'); return u; }
@@ -150,7 +178,23 @@
     }
     function total(q, cpp, t) { var v = t != null ? +t : (q != null && cpp != null ? Math.round(q * cpp) / 100 : null); if (!(v > 0)) fail('Enter a price.'); return v; }
     function event(db, o, actor, action, extra) {
-      db.events.push(Object.assign({ id: db.events.length + 1, offer_id: o.id, actor_id: actor, action: action, quantity: null, price_cpp: null, total_usd: null, message: '', created_at: now() }, extra || {}));
+      var e = Object.assign({ id: db.events.length + 1, offer_id: o.id, actor_id: actor, action: action, quantity: null, price_cpp: null, total_usd: null, message: '', created_at: now() }, extra || {});
+      db.events.push(e); notifyDemo(db, o, e);
+    }
+    // Mirrors notify_on_offer_event() in supabase/002_addons.sql.
+    function notifyDemo(db, o, e) {
+      var l = db.listings.find(function (x) { return x.id === o.listing_id; }) || {}, prog = l.programme || 'your listing';
+      var amt = 'US$' + Number(e.total_usd || o.total_usd || 0).toLocaleString('en-US', { maximumFractionDigits: 2 });
+      var what = o.kind === 'booking' ? 'booking request (budget ' + amt + ')' : 'offer of ' + amt;
+      var other = e.actor_id === o.buyer_id ? o.seller_id : o.buyer_id, link = '/deal.html?id=' + o.id;
+      var admins = db.profiles.filter(function (p) { return p.is_admin; }).map(function (p) { return p.id; });
+      function add(uid, kind, title, body) { if (uid) db.notifications.push({ id: db.notifications.length + 1, user_id: uid, kind: kind, title: title, body: body || '', link: link, offer_id: o.id, read_at: null, created_at: now() }); }
+      if (e.action === 'offer') { add(o.seller_id, 'new_offer', 'New ' + what + ' on your ' + prog + ' listing', e.message); admins.filter(function (a) { return a !== o.seller_id; }).forEach(function (a) { add(a, 'admin_new_offer', 'New ' + what + ' on ' + prog, e.message); }); }
+      else if (e.action === 'counter') add(other, 'counter', 'Counter-offer of ' + amt + ' on ' + prog, e.message);
+      else if (e.action === 'accept') { add(other, 'accepted', 'Deal agreed: ' + prog + ' for ' + amt, 'AirMilesHK will contact you on WhatsApp to arrange payment and delivery.'); admins.filter(function (a) { return a !== o.buyer_id && a !== o.seller_id; }).forEach(function (a) { add(a, 'admin_deal_agreed', 'Deal agreed: ' + prog + ' for ' + amt, 'Arrange payment and delivery.'); }); }
+      else if (e.action === 'decline') add(other, 'declined', 'Offer declined on ' + prog, e.message);
+      else if (e.action === 'withdraw') add(o.seller_id, 'withdrawn', 'Offer withdrawn on ' + prog, e.message);
+      else if (['complete', 'cancel', 'reopen'].indexOf(e.action) >= 0) [o.buyer_id, o.seller_id].forEach(function (u) { add(u, 'deal_' + e.action, ({ complete: 'Deal completed: ', cancel: 'Deal cancelled: ', reopen: 'Deal back to agreed: ' })[e.action] + prog, e.message); });
     }
 
     return {
@@ -265,10 +309,47 @@
         return clone(Object.assign({}, o, { listing: db.listings.find(function (x) { return x.id === o.listing_id; }), events: db.events.filter(function (e) { return e.offer_id === id; }), names: n, buyer: n[o.buyer_id], seller: n[o.seller_id] }));
       },
 
+      /* sell-quote form (mirrors submit_sell_quote in supabase/002_addons.sql) */
+      async quoteSignup(email, meta) {
+        var db = load(); email = String(email).trim().toLowerCase();
+        if (!db.profiles.some(function (p) { return p.email === email; })) {
+          db.profiles.push({ id: uuid(), email: email, full_name: meta.full_name || '', display_name: meta.display_name || 'Member', whatsapp: meta.whatsapp || '', country: '', role: 'seller', is_admin: false, is_suspended: false, terms_accepted_at: now(), created_at: now() });
+          save(db);
+        }
+      },
+      async submitSellQuote(p) {
+        var db = load(), digits = String(p.phone || '').replace(/\D/g, ''), email = String(p.email || '').trim().toLowerCase();
+        if (p.website) fail('Something went wrong. Please try again.');
+        if (digits.length < 7) fail('Enter your phone number with country code.');
+        if (!p.programme) fail('Choose your programme.');
+        if (!(p.balance > 0)) fail('Enter your balance.');
+        if (p.wants_listing) validateListing(p);
+        var q = Object.assign({}, p, { id: uuid(), created_at: now(), email: email, listing_id: null, member_id: null, attach: 'none', status: 'new' }); delete q.website;
+        db.quotes.push(q);
+        var res = { quote_id: q.id, listing_id: null, attach: 'none', listing_status: null };
+        if (p.wants_listing) {
+          var m = email && db.profiles.find(function (x) { return x.email === email; }), seller, status = 'active', attach;
+          if (m) { seller = m.id; attach = (Date.now() - new Date(m.created_at)) < 15 * 6e4 ? 'new_member' : 'existing_member'; if (attach === 'existing_member') status = 'paused'; }
+          else { attach = 'managed'; seller = (db.profiles.find(function (x) { return x.is_admin; }) || {}).id; if (!seller) fail('The marketplace is not ready yet.'); }
+          var l = { id: uuid(), seller_id: seller, programme: p.programme, programme_type: p.programme_type || 'other', balance: p.balance, sell_whole: !!p.sell_whole, sell_partial: !!p.sell_partial, min_per_deal: p.sell_partial ? p.min_per_deal || null : null, offers_booking: !!p.offers_booking, price_mode: p.price_mode || 'offers', price_cpp: p.price_mode === 'fixed' ? p.price_cpp : null, whole_price_usd: p.price_mode === 'fixed' ? p.whole_price_usd : null, elite_status: '', notes: '', status: status, managed: attach === 'managed', quote_id: q.id, created_at: now(), updated_at: now() };
+          db.listings.push(l); q.listing_id = l.id; q.member_id = m ? m.id : null; q.attach = attach;
+          res = { quote_id: q.id, listing_id: l.id, attach: attach, listing_status: status };
+        }
+        save(db); return res;
+      },
+
+      /* notifications */
+      async notifications() { var db = load(), u = need(db); return clone(db.notifications.filter(function (n) { return n.user_id === u.id; }).reverse().slice(0, 60)); },
+      async unreadCount() { var db = load(), u = me(db); return u ? db.notifications.filter(function (n) { return n.user_id === u.id && !n.read_at; }).length : 0; },
+      async markRead(ids) { var db = load(), u = need(db); db.notifications.forEach(function (n) { if (n.user_id === u.id && !n.read_at && (!ids || !ids.length || ids.indexOf(n.id) >= 0)) n.read_at = now(); }); save(db); },
+
       async adminData() {
         var db = load(), u = need(db); if (!u.is_admin) fail('Admins only.');
-        return clone({ profiles: db.profiles.slice().reverse(), listings: db.listings.slice().reverse(), offers: db.offers.slice().sort(function (a, b) { return b.updated_at < a.updated_at ? -1 : 1; }) });
+        return clone({ profiles: db.profiles.slice().reverse(), listings: db.listings.slice().reverse(), offers: db.offers.slice().sort(function (a, b) { return b.updated_at < a.updated_at ? -1 : 1; }),
+          quotes: db.quotes.slice().reverse(), events: db.events.slice().reverse(), waLog: db.waLog });
       },
+      async adminSetQuoteStatus(id, status) { var db = load(), u = need(db); if (!u.is_admin) fail('Admins only.'); var q = db.quotes.find(function (x) { return x.id === id; }); if (q) { q.status = status; save(db); } },
+      async adminMarkWa(eventId, recipient) { var db = load(), u = need(db); if (!u.is_admin) fail('Admins only.'); if (!db.waLog.some(function (w) { return w.event_id === eventId && w.recipient === recipient; })) { db.waLog.push({ event_id: eventId, recipient: recipient, sent_at: now() }); save(db); } },
       async adminUpdateOffer(id, status, message) {
         var db = load(), u = need(db); if (!u.is_admin) fail('Admins only.');
         var o = db.offers.find(function (x) { return x.id === id; }); if (!o) fail('Deal not found.');

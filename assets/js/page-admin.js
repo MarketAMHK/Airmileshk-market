@@ -4,14 +4,48 @@
   var STATUS = {
     deals: [['', 'All deals'], ['accepted', 'Agreed — needs action'], ['open', 'Negotiating'], ['completed', 'Completed'], ['declined', 'Declined'], ['withdrawn', 'Withdrawn'], ['cancelled', 'Cancelled']],
     listings: [['', 'All listings'], ['active', 'Active'], ['paused', 'Paused'], ['removed', 'Removed']],
-    members: [['', 'All members'], ['seller', 'Sellers'], ['buyer', 'Buyers'], ['suspended', 'Suspended'], ['admin', 'Admins']]
+    members: [['', 'All members'], ['seller', 'Sellers'], ['buyer', 'Buyers'], ['suspended', 'Suspended'], ['admin', 'Admins']],
+    activity: [['todo', 'WhatsApp not sent yet'], ['', 'All activity'], ['sent', 'WhatsApp sent']],
+    quotes: [['', 'All requests'], ['new', 'New'], ['contacted', 'Contacted'], ['closed', 'Closed'], ['listed', 'Listed on marketplace'], ['unlisted', 'Not listed']]
   };
+  var SITE = 'https://market.airmileshk.com';
+  function waLink(phone, text) { var n = String(phone || '').replace(/\D/g, ''); return n.length >= 7 ? 'https://wa.me/' + n + '?text=' + encodeURIComponent(text) : null; }
+  function firstName(s) { s = String(s || '').trim(); return !s ? 'there' : s.length <= 20 ? s : s.split(/\s+/)[0]; }
+  function money(n) { return 'US$' + Number(n || 0).toLocaleString('en-US', { maximumFractionDigits: 2 }); }
+
+  // Who to message for a deal step, and what to say (Eran checks the text and presses send in WhatsApp).
+  function waTargets(ev) {
+    var o = d.oById[ev.offer_id]; if (!o) return [];
+    var l = d.lById[o.listing_id] || {}, prog = l.programme || 'your', amt = money(ev.total_usd || o.total_usd);
+    var dealUrl = SITE + '/deal.html?id=' + o.id, listUrl = SITE + U.listingUrl(o.listing_id);
+    var q = l.managed && l.quote_id ? d.qById[l.quote_id] : null;
+    function person(role) {
+      if (role === 'seller' && q) return { role: role, name: q.name, phone: q.phone, url: listUrl, managed: true };
+      var p = d.pById[role === 'buyer' ? o.buyer_id : o.seller_id] || {};
+      return { role: role, name: p.full_name || p.display_name, phone: p.whatsapp, url: dealUrl };
+    }
+    var other = ev.actor_id === o.buyer_id ? 'seller' : 'buyer', out = [];
+    if (ev.action === 'offer') { var s = person('seller'); s.text = 'Hi ' + firstName(s.name) + ', you got a ' + (o.kind === 'booking' ? 'booking request (budget ' + amt + ')' : amt + ' bid') + ' on your ' + prog + ' listing on AirMilesHK Marketplace' + (s.managed ? '. Shall we go ahead? ' : ': ') + s.url; out.push(s); }
+    else if (ev.action === 'counter') { var c = person(other); c.text = 'Hi ' + firstName(c.name) + ', you have a counter-offer of ' + amt + ' on ' + prog + ' on AirMilesHK Marketplace: ' + c.url; out.push(c); }
+    else if (ev.action === 'accept') { ['buyer', 'seller'].forEach(function (r) { var x = person(r); x.text = 'Hi ' + firstName(x.name) + ', your ' + prog + ' deal for ' + amt + ' is agreed on AirMilesHK Marketplace. We will arrange payment and delivery with you here on WhatsApp. ' + x.url; out.push(x); }); }
+    else if (ev.action === 'decline') { var b = person('buyer'); b.text = 'Hi ' + firstName(b.name) + ', the seller declined your offer on ' + prog + '. See other listings: ' + SITE + (U.programmeUrl(prog) || '/'); out.push(b); }
+    return out;
+  }
+  function waSent(ev, role) { return d.waLog.some(function (w) { return w.event_id === ev.id && w.recipient === role; }); }
 
   async function load() {
     try { d = await API.adminData(); }
     catch (e) { U.$('#tbl tbody').innerHTML = '<tr><td><div class="note red">' + U.esc(e.message) + '</div></td></tr>'; return; }
     d.pById = {}; d.profiles.forEach(function (p) { d.pById[p.id] = p; });
     d.lById = {}; d.listings.forEach(function (l) { d.lById[l.id] = l; });
+    d.oById = {}; d.offers.forEach(function (o) { d.oById[o.id] = o; });
+    d.quotes = d.quotes || []; d.events = d.events || []; d.waLog = d.waLog || [];
+    d.qById = {}; d.quotes.forEach(function (q) { d.qById[q.id] = q; });
+    d.waEvents = d.events.filter(function (e) { return ['offer', 'counter', 'accept', 'decline'].indexOf(e.action) >= 0; });
+    var waTodo = d.waEvents.filter(function (e) { return waTargets(e).some(function (t) { return !waSent(e, t.role); }); }).length;
+    var newQuotes = d.quotes.filter(function (q) { return q.status === 'new'; }).length;
+    U.$('#c-activity').textContent = waTodo || d.waEvents.length; U.$('#c-activity').classList.toggle('hot', waTodo > 0);
+    U.$('#c-quotes').textContent = newQuotes || d.quotes.length; U.$('#c-quotes').classList.toggle('hot', newQuotes > 0);
     var agreed = d.offers.filter(function (o) { return o.status === 'accepted'; }).length;
     var done = d.offers.filter(function (o) { return o.status === 'completed'; });
     U.$('#stats').innerHTML = [
@@ -48,6 +82,55 @@
       rowsForCsv = [['id', 'updated', 'programme', 'kind', 'buyer', 'buyer_email', 'seller', 'seller_email', 'quantity', 'price_cpp', 'total_usd', 'status']].concat(rows.map(function (o) {
         var l = d.lById[o.listing_id] || {}, b = d.pById[o.buyer_id] || {}, s = d.pById[o.seller_id] || {};
         return [o.id, o.updated_at, l.programme, o.kind, b.display_name, b.email, s.display_name, s.email, o.quantity, o.price_cpp, o.total_usd, o.status];
+      }));
+    } else if (tab === 'activity') {
+      var verbs = { offer: 'New bid', counter: 'Counter-offer', accept: 'Deal agreed', decline: 'Declined' };
+      rows = d.waEvents.filter(function (e) {
+        var t = waTargets(e), allSent = t.length && t.every(function (x) { return waSent(e, x.role); });
+        if (st === 'todo' && allSent) return false; if (st === 'sent' && !allSent) return false;
+        var o = d.oById[e.offer_id] || {}, l = d.lById[o.listing_id] || {};
+        return hit(l.programme, name(o.buyer_id), name(o.seller_id), verbs[e.action]);
+      });
+      head = ['When', 'What', 'Programme', 'Amount', 'Buyer → Seller', 'Send on WhatsApp', ''];
+      body = rows.map(function (e) {
+        var o = d.oById[e.offer_id] || {}, l = d.lById[o.listing_id] || {};
+        var btns = waTargets(e).map(function (t) {
+          var url = waLink(t.phone, t.text), sent = waSent(e, t.role), who = (t.role === 'buyer' ? 'Buyer' : 'Seller') + ' · ' + firstName(t.name);
+          return url ? '<a class="btn wa sm' + (sent ? ' sent' : '') + '" target="_blank" rel="noopener" href="' + url + '" data-ev="' + e.id + '" data-r="' + t.role + '">' + (sent ? '✓ Sent · ' : 'WhatsApp ') + U.esc(who) + '</a>'
+            : '<span class="chip grey">' + U.esc(who) + ': no phone</span>';
+        }).join(' ');
+        return '<tr><td>' + U.ago(e.created_at) + '</td><td><strong>' + U.esc(verbs[e.action]) + '</strong></td><td>' + U.esc(l.programme || '?') + (l.managed ? ' <span class="chip">via quote</span>' : '') + '</td>' +
+          '<td>' + U.usd(e.total_usd || o.total_usd) + '</td><td>' + U.esc(name(o.buyer_id)) + ' → ' + U.esc(l.managed ? 'AirMilesHK (managed)' : name(o.seller_id)) + '</td>' +
+          '<td><div class="actions">' + btns + '</div></td><td><a href="/deal.html?id=' + encodeURIComponent(e.offer_id) + '">Open →</a></td></tr>';
+      });
+      rowsForCsv = [['event_id', 'when', 'action', 'programme', 'amount', 'buyer', 'seller']].concat(rows.map(function (e) {
+        var o = d.oById[e.offer_id] || {}, l = d.lById[o.listing_id] || {};
+        return [e.id, e.created_at, e.action, l.programme, e.total_usd || o.total_usd, name(o.buyer_id), name(o.seller_id)];
+      }));
+    } else if (tab === 'quotes') {
+      rows = d.quotes.filter(function (q) {
+        if (st === 'listed' && !q.listing_id) return false; if (st === 'unlisted' && q.listing_id) return false;
+        if (['new', 'contacted', 'closed'].indexOf(st) >= 0 && q.status !== st) return false;
+        return hit(q.name, q.phone, q.email, q.programme);
+      });
+      var attachLabel = { new_member: 'Live · new member', existing_member: 'Added to member (paused)', managed: 'Live · via AirMilesHK' };
+      head = ['Received', 'Seller', 'Phone', 'Email', 'Programme', 'Balance', 'Price', 'Marketplace ad', 'Status', ''];
+      body = rows.map(function (q) {
+        var l = q.listing_id ? d.lById[q.listing_id] : null, unit = q.programme_type === 'hotel' ? 'points' : 'miles';
+        var wa = waLink(q.phone, 'Hi ' + firstName(q.name) + ', thanks for your ' + q.programme + ' quote request (' + U.num(q.balance) + ' ' + unit + ') on AirMilesHK. ');
+        var price = q.price_mode === 'fixed' ? (q.price_cpp ? U.cpp(q.price_cpp) + '/pt' : q.whole_price_usd ? U.usd(q.whole_price_usd) + ' whole' : 'Fixed') : 'Open to offers';
+        var ad = !l ? '<span class="muted">Not listed</span>' :
+          '<a href="' + U.listingUrl(l.id) + '">' + U.esc(attachLabel[q.attach] || 'Listed') + '</a> ' + U.statusChip(l.status) +
+          '<div class="actions" style="margin-top:6px">' + (l.status === 'active' ? '<button class="btn ol sm" data-l="' + l.id + '" data-st="paused">Pause</button>' : l.status === 'paused' ? '<button class="btn sm" data-l="' + l.id + '" data-st="active">Make live</button>' : '') +
+          (l.status !== 'removed' ? '<button class="btn danger sm" data-l="' + l.id + '" data-st="removed">Remove</button>' : '') + '</div>';
+        var stSel = '<select class="f-select" style="padding:6px 30px 6px 10px;font-size:.8rem;min-width:120px" data-q="' + q.id + '">' +
+          ['new', 'contacted', 'closed'].map(function (s) { return '<option' + (q.status === s ? ' selected' : '') + ' value="' + s + '">' + s[0].toUpperCase() + s.slice(1) + '</option>'; }).join('') + '</select>';
+        return '<tr><td>' + U.ago(q.created_at) + '</td><td><strong>' + U.esc(q.name || '—') + '</strong></td><td>' + U.esc(q.phone) + '</td><td>' + U.esc(q.email || '—') + '</td>' +
+          '<td>' + U.esc(q.programme) + '</td><td>' + U.num(q.balance) + '</td><td>' + U.esc(price) + '</td><td>' + ad + '</td><td>' + stSel + '</td>' +
+          '<td>' + (wa ? '<a class="btn wa sm" target="_blank" rel="noopener" href="' + wa + '">WhatsApp</a>' : '') + '</td></tr>';
+      });
+      rowsForCsv = [['id', 'received', 'name', 'phone', 'email', 'programme', 'balance', 'price_mode', 'price_cpp', 'whole_price_usd', 'partial', 'min_per_deal', 'whole', 'booking', 'wants_listing', 'listing_id', 'attach', 'status']].concat(rows.map(function (q) {
+        return [q.id, q.created_at, q.name, q.phone, q.email, q.programme, q.balance, q.price_mode, q.price_cpp, q.whole_price_usd, q.sell_partial, q.min_per_deal, q.sell_whole, q.offers_booking, q.wants_listing, q.listing_id, q.attach, q.status];
       }));
     } else if (tab === 'listings') {
       rows = d.listings.filter(function (l) { return (!st || l.status === st) && hit(l.programme, name(l.seller_id), l.notes); });
@@ -89,6 +172,21 @@
       b.onclick = async function () {
         if (b.dataset.st === 'removed' && !confirm('Remove this listing from the marketplace?')) return;
         try { await API.adminSetListingStatus(b.dataset.l, b.dataset.st); U.toast('Listing updated'); load(); } catch (e) { U.toast(e.message, true); }
+      };
+    });
+    U.$$('#tbl a[data-ev]').forEach(function (a) {
+      a.addEventListener('click', function () {
+        // The link opens WhatsApp in a new tab; record that it was sent.
+        API.adminMarkWa(+a.dataset.ev, a.dataset.r).then(function () {
+          d.waLog.push({ event_id: +a.dataset.ev, recipient: a.dataset.r }); a.classList.add('sent');
+          if (!/^✓/.test(a.textContent)) a.textContent = '✓ Sent · ' + a.textContent.replace(/^WhatsApp /, '');
+        }).catch(function (e) { U.toast(e.message, true); });
+      });
+    });
+    U.$$('#tbl select[data-q]').forEach(function (s) {
+      s.onchange = async function () {
+        try { await API.adminSetQuoteStatus(s.dataset.q, s.value); d.qById[s.dataset.q].status = s.value; U.toast('Status updated'); }
+        catch (e) { U.toast(e.message, true); }
       };
     });
     U.$$('#tbl [data-u]').forEach(function (b) {

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sell Your Miles or Hotel Points — Free Quote | AirMilesHK</title>
+<meta name="description" content="Get a free quote from AirMilesHK for your airline miles or hotel points, and optionally list them free on the AirMilesHK Marketplace. Reply on WhatsApp, usually within minutes.">
+<link rel="canonical" href="https://market.airmileshk.com/sell-quote">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,400&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/market.css">
+<link rel="icon" type="image/png" href="/assets/favicon.png"><link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<meta property="og:title" content="Sell your miles or hotel points — free quote | AirMilesHK"><meta property="og:image" content="https://airmileshk.com/assets/og-image.jpg">
+<style>
+.phone-row{display:grid;grid-template-columns:150px 1fr;gap:10px}
+@media(max-width:420px){.phone-row{grid-template-columns:120px 1fr}}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.done-card{text-align:center}
+.done-card .big{font-family:'Cormorant Garamond',serif;font-size:2rem;color:var(--navy);margin-bottom:8px}
+</style>
+</head><body>
+<div id="hk-header"></div>
+<main>
+<section class="page-hero"><div class="W">
+  <div class="ey">Sell your miles &amp; points</div>
+  <h1>Get a <em>free quote</em></h1>
+  <p class="hs">Tell us what you have. AirMilesHK replies on WhatsApp with a cash offer, usually within minutes. You can also list it free on the AirMilesHK Marketplace so members can bid.</p>
+</div></section>
+<section class="sec"><div class="W" style="max-width:720px">
+  <div id="msg"></div>
+  <form id="qf" class="form-card" novalidate>
+    <h3>Your details</h3>
+    <div class="f-field"><label class="f-label" for="q-name">Name</label><input class="f-input" id="q-name" autocomplete="name" maxlength="120"></div>
+    <div class="f-field"><label class="f-label" for="q-num">WhatsApp / phone number *</label>
+      <div class="phone-row">
+        <select class="f-select" id="q-cc" aria-label="Country code"></select>
+        <input class="f-input" id="q-num" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="9123 4567" required maxlength="25">
+      </div>
+      <div class="f-hint">We reply on WhatsApp. Choose "Other" to type the full number with its country code.</div></div>
+    <div class="f-field"><label class="f-label" for="q-email">Email (optional)</label><input class="f-input" id="q-email" type="email" autocomplete="email" maxlength="200">
+      <div class="f-hint">With an email, your marketplace ad comes with your own login, so you can edit it and get bid alerts.</div></div>
+
+    <h3 class="mt">What you're selling</h3>
+    <div class="f-field"><label class="f-label" for="prog">Programme *</label><select class="f-select" id="prog" required></select></div>
+    <div class="f-row hide" id="other-row">
+      <div class="f-field"><label class="f-label" for="prog-other">Programme name</label><input class="f-input" id="prog-other" maxlength="80"></div>
+      <div class="f-field"><label class="f-label" for="ptype">Type</label><select class="f-select" id="ptype"><option value="airline">Airline miles</option><option value="hotel">Hotel points</option><option value="bank">Card points</option><option value="other">Other</option></select></div>
+    </div>
+    <div class="f-field"><label class="f-label" for="balance">Balance *</label><input class="f-input" id="balance" inputmode="numeric" placeholder="e.g. 250,000" required><div class="f-hint">You can type 250k or 1.2m.</div></div>
+
+    <span class="f-label">How would you sell?</span>
+    <label class="f-check" data-opt><input type="checkbox" id="o-partial" checked><span><span class="t">Part of my balance</span><span class="d" style="display:block">Sell a portion. Set a minimum per deal if you want.</span></span></label>
+    <div class="f-sub" id="min-wrap"><div class="f-field" style="max-width:280px"><label class="f-label" for="minq">Minimum per deal (optional)</label><input class="f-input" id="minq" inputmode="numeric" placeholder="e.g. 50,000"></div></div>
+    <label class="f-check" data-opt><input type="checkbox" id="o-whole"><span><span class="t">The whole account</span><span class="d" style="display:block">Hand over the full account and balance.</span></span></label>
+    <label class="f-check" data-opt><input type="checkbox" id="o-book"><span><span class="t" id="book-t">Issue tickets or book hotel stays for buyers</span><span class="d" style="display:block">You keep your account and book in the buyer's name.</span></span></label>
+
+    <span class="f-label mt" style="margin-top:18px">Price</span>
+    <div class="seg mb" role="radiogroup">
+      <label><input type="radio" name="pm" value="offers" checked><span>Open to offers</span></label>
+      <label><input type="radio" name="pm" value="fixed"><span>I have a price in mind</span></label>
+    </div>
+    <div id="price-wrap" class="f-row hide">
+      <div class="f-field"><label class="f-label" for="cpp">Price per mile/point (US cents)</label><input class="f-input" id="cpp" inputmode="decimal" placeholder="e.g. 1.25"></div>
+      <div class="f-field" id="whole-price-field"><label class="f-label" for="wprice">Whole-account price (US$)</label><input class="f-input" id="wprice" inputmode="decimal"></div>
+    </div>
+
+    <label class="f-check mt" id="list-box"><input type="checkbox" id="q-list"><span><span class="t">Also list my account on the AirMilesHK Marketplace (free)</span>
+      <span class="d" style="display:block">Airline and hotel programmes generally prohibit account transfers and can close accounts. By listing, you accept the <a class="lnk" href="/terms.html" target="_blank">marketplace rules</a>.</span></span></label>
+    <div class="hp" aria-hidden="true"><label>Website <input id="q-website" tabindex="-1" autocomplete="off"></label></div>
+
+    <div id="q-err"></div>
+    <button class="btn block mt" type="submit" id="q-send">Get my quote on WhatsApp →</button>
+    <p class="f-hint" style="text-align:center;margin-top:10px">We'll open WhatsApp with your details filled in. Just press send.</p>
+  </form>
+</div></section>
+</main>
+<div id="hk-footer"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/assets/js/config.js"></script><script src="/assets/js/programmes.js"></script><script src="/assets/js/api.js"></script><script src="/assets/js/app.js"></script>
+<script src="/assets/js/page-sell-quote.js"></script>
+</body></html>
